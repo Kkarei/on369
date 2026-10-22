@@ -1,0 +1,24 @@
+{
+  "images": [
+    {
+      "file": "on369-aurora.jpg",
+      "id": "aurora",
+      "name": "Aurora"
+    },
+    {
+      "file": "on369-dunes.jpg",
+      "id": "dunes",
+      "name": "Dunes at dusk"
+    },
+    {
+      "file": "on369-nebula.jpg",
+      "id": "nebula",
+      "name": "Nebula"
+    },
+    {
+      "file": "on369-misty-mountains.jpg",
+      "id": "misty-mountains",
+      "name": "Misty mountains"
+    }
+  ]
+}
