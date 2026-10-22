@@ -19,6 +19,11 @@
       "file": "on369-misty-mountains.jpg",
       "id": "misty-mountains",
       "name": "Misty mountains"
+    },
+    {
+      "file": "Image_fx.jpg",
+      "id": "image-fx",
+      "name": "Image-fx"
     }
   ]
 }
