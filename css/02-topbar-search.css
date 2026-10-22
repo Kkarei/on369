@@ -1,0 +1,268 @@
+/* ---------- WALLPAPER ---------- */
+  #desktop{
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background: var(--bg-0);
+    overflow: auto;
+  }
+  html[data-wallpaper="dots"] #desktop{
+    background-image:
+      radial-gradient(circle at 18% 12%, var(--bg-glow), transparent 45%),
+      radial-gradient(circle at 82% 88%, var(--bg-glow), transparent 40%),
+      radial-gradient(var(--dot) 1.4px, transparent 1.4px);
+    background-color: var(--bg-0);
+    background-size: auto, auto, 26px 26px;
+  }
+  html[data-wallpaper="aurora"] #desktop{
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 0%, var(--glow-1), transparent 60%),
+      radial-gradient(ellipse 50% 35% at 85% 15%, var(--glow-2), transparent 60%),
+      radial-gradient(ellipse 60% 50% at 50% 100%, var(--glow-1), transparent 60%),
+      var(--bg-0);
+  }
+  html[data-wallpaper="grid"] #desktop{
+    background-image:
+      radial-gradient(circle at 50% 0%, var(--bg-glow), transparent 55%),
+      linear-gradient(var(--dot) 1px, transparent 1px),
+      linear-gradient(90deg, var(--dot) 1px, transparent 1px);
+    background-color: var(--bg-0);
+    background-size: auto, 52px 52px, 52px 52px;
+  }
+
+  #desktop::-webkit-scrollbar{ width: 10px; height:10px; }
+  #desktop::-webkit-scrollbar-thumb{ background: var(--scrollbar); border-radius: 8px; }
+  #folderBody::-webkit-scrollbar{ width: 9px; }
+  #folderBody::-webkit-scrollbar-thumb{ background: var(--scrollbar); border-radius: 8px; }
+
+  /* ---------- TOP BAR ---------- */
+  #topbar{
+    position: fixed; top: 0; left: 0; right: 0;
+    height: calc(var(--topbar-h) + var(--safe-top));
+    padding-top: var(--safe-top);
+    display: flex; align-items: center; justify-content: space-between;
+    padding-left: calc(16px + var(--safe-left));
+    padding-right: calc(16px + var(--safe-right));
+    z-index: 500;
+    pointer-events: none;
+  }
+  #topbar > *{ pointer-events: auto; }
+  .brand{
+    display:flex; align-items:center; gap:8px;
+  }
+  .brand-logo{
+    height: 28px;
+    width: auto;
+    display: block;
+    flex-shrink: 0;
+  }
+  @media (max-width: 640px){
+    .brand-logo{ height: 23px; }
+  }
+
+  .topbar-right{ display:flex; align-items:center; gap:10px; }
+
+  #clock{
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    display:flex; gap:8px; align-items:baseline;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: background .12s ease, color .12s ease;
+  }
+  #clock:hover{ background: var(--surface-hover); color: var(--text-primary); }
+  #clock .date{ color: var(--text-tertiary); }
+
+  /* ---------- CALENDAR ---------- */
+  #calendarPop{
+    position: fixed;
+    top: 52px; right: 16px;
+    width: 264px;
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 16px;
+    z-index: 900;
+    display: none;
+    backdrop-filter: blur(16px);
+  }
+  #calendarPop.open{ display:block; }
+  .cal-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .cal-nav{ display:flex; align-items:center; gap:6px; }
+  .cal-nav-btn{ width:26px; height:26px; border-radius:8px; }
+  .cal-nav-btn svg{ width:13px; height:13px; }
+  #calMonthLabel{ font-family: var(--font-display); font-size:13px; font-weight:700; min-width:108px; text-align:center; }
+  #calSettingsBtn{ width:26px; height:26px; border-radius:8px; }
+  #calSettingsBtn svg{ width:14px; height:14px; }
+  .cal-weekdays{
+    display:grid; grid-template-columns: repeat(7, 1fr);
+    font-size:10.5px; font-weight:700; color:var(--text-tertiary);
+    text-align:center; margin-bottom:4px;
+  }
+  .cal-grid{ display:grid; grid-template-columns: repeat(7, 1fr); gap:2px; }
+  .cal-day{
+    aspect-ratio: 1; display:flex; align-items:center; justify-content:center;
+    font-size:12px; border-radius:8px; color: var(--text-primary);
+    cursor:default;
+  }
+  .cal-day.muted{ color: var(--text-tertiary); opacity:0.5; }
+  .cal-day.today{ background: var(--accent); color:#fff; font-weight:700; }
+  .cal-today-row{
+    margin-top:12px; padding-top:12px; border-top:1px solid var(--border);
+    font-size:11.5px; color:var(--text-secondary); text-align:center;
+  }
+  .seg-row{ display:flex; gap:6px; margin-bottom:2px; }
+  .seg-btn{
+    flex:1; font: inherit; font-size:11.5px; font-weight:600;
+    padding:7px 4px; border-radius:8px;
+    background: var(--surface); border:1px solid var(--border);
+    color: var(--text-secondary); cursor:pointer; text-align:center;
+    transition: background .12s ease, color .12s ease;
+  }
+  .seg-btn:hover{ background: var(--surface-hover); color: var(--text-primary); }
+  .seg-btn.active{ background: var(--accent); border-color: var(--accent); color:#fff; }
+
+  .iconbtn{
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    cursor: pointer;
+    color: var(--text-secondary);
+    backdrop-filter: blur(10px);
+    transition: background .12s ease, color .12s ease, transform .08s ease;
+  }
+  .iconbtn:hover{ background: var(--surface-hover); color: var(--text-primary); }
+  .iconbtn:active{ transform: scale(0.94); }
+  .iconbtn svg{ width:16px; height:16px; }
+
+  /* ---------- SEARCH BAR ---------- */
+  #searchBar{
+    position: fixed;
+    top: calc(var(--topbar-h) + var(--safe-top));
+    left: 0; right: 0;
+    height: var(--searchbar-h);
+    z-index: 480;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 calc(16px + var(--safe-right)) 0 calc(16px + var(--safe-left));
+    pointer-events: none;
+  }
+  #searchBar > *{ pointer-events: auto; }
+  .search-shell{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 560px;
+    height: 44px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0 8px 0 6px;
+    backdrop-filter: blur(14px);
+    box-shadow: var(--shadow-soft), 0 0 0 1px transparent;
+    transition: box-shadow .18s ease, border-color .18s ease;
+  }
+  .search-shell:focus-within{
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-soft), 0 0 0 3px var(--surface-selected);
+  }
+  .search-mode{
+    display: flex;
+    background: var(--bg-0);
+    border-radius: 9px;
+    padding: 2px;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .mode-btn{
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 7px 11px;
+    border-radius: 7px;
+    cursor: pointer;
+  }
+  .mode-btn.active{ background: var(--accent); color: #fff; }
+
+  .engine-picker{
+    display: none;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    padding: 0 2px;
+  }
+  .engine-picker.visible{ display: flex; }
+  .engine-btn{
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 1.5px solid transparent;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 800;
+    color: #fff;
+    background: #fff;
+    cursor: pointer;
+    opacity: 0.55;
+    transform: scale(0.92);
+    overflow: hidden;
+    flex-shrink: 0;
+    transition: opacity .12s ease, transform .12s ease, border-color .12s ease;
+  }
+  .engine-btn img{ width: 100%; height: 100%; object-fit: cover; display: block; }
+  .engine-btn.active{ opacity: 1; transform: scale(1); border-color: var(--text-primary); }
+
+  .search-input-wrap{
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 6px;
+  }
+  .search-input-wrap svg{ width:16px; height:16px; color: var(--text-tertiary); flex-shrink:0; }
+  #searchInput{
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 14px;
+    outline: none;
+    user-select: text;
+    -webkit-user-select: text;
+  }
+  #searchInput::placeholder{ color: var(--text-tertiary); }
+  #searchGo{
+    width: 32px; height: 32px;
+    flex-shrink: 0;
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  #searchGo:hover{ background: var(--accent-strong); border-color: var(--accent-strong); }
+
+  @media (max-width: 640px){
+    .search-shell{ max-width: 100%; height: 40px; gap: 6px; }
+    .mode-btn{ padding: 6px 8px; font-size: 10.5px; }
+    #searchInput{ font-size: 14px; }
+    .engine-btn{ width: 20px; height: 20px; font-size: 9px; }
+    #searchGo{ width: 28px; height: 28px; }
+  }
+
+  
