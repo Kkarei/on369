@@ -1,0 +1,220 @@
+/* ---------- SETTINGS POPOVER ---------- */
+  #settingsPop{
+    position: fixed;
+    top: 52px; right: 16px;
+    width: 264px;
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 16px;
+    z-index: 900;
+    display: none;
+    backdrop-filter: blur(16px);
+    max-height: calc(100vh - 68px);
+    overflow-y: auto;
+  }
+  #settingsPop.open{ display:block; }
+  .pop-label{
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+    font-weight: 700;
+    margin: 4px 0 9px;
+  }
+  .theme-grid{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 9px;
+    margin-bottom: 16px;
+  }
+  .theme-card{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+  }
+  .theme-swatch{
+    width: 100%;
+    height: 42px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    position: relative;
+    transition: border-color .12s ease, transform .12s ease;
+  }
+  .theme-card:hover .theme-swatch{ transform: translateY(-1px); }
+  .theme-card.active .theme-swatch{
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--surface-selected);
+  }
+  .theme-swatch .dot{
+    position: absolute; right: 6px; bottom: 6px;
+    width: 9px; height: 9px; border-radius: 50%;
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.18);
+  }
+  .theme-name{
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+  .theme-card.active .theme-name{ color: var(--text-primary); }
+
+  .wp-row{ display:flex; gap:8px; }
+  .wp-swatch{
+    flex:1; height:34px; border-radius:8px; cursor:pointer;
+    border: 1.5px solid var(--border);
+    transition: border-color .12s ease;
+  }
+  .wp-swatch.active{ border-color: var(--accent); }
+  .wp-swatch.wp-dots{ background: radial-gradient(circle, var(--accent) 1px, transparent 1.2px) 0 0/8px 8px, var(--bg-0); }
+  .wp-swatch.wp-aurora{ background: radial-gradient(ellipse at 30% 20%, color-mix(in srgb, var(--accent) 55%, transparent), transparent 65%), var(--bg-0); }
+  .wp-swatch.wp-grid{ background: linear-gradient(var(--border-strong) 1px, transparent 1px) 0 0/9px 9px, linear-gradient(90deg,var(--border-strong) 1px, transparent 1px) 0 0/9px 9px, var(--bg-0); }
+
+  .icon-size-row{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .icon-size-row .iconbtn{ width: 30px; height: 30px; flex-shrink: 0; }
+  .icon-size-row .iconbtn svg{ width: 15px; height: 15px; }
+  #iconSizeReadout{
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    min-width: 40px;
+    text-align: center;
+  }
+
+  /* ---------- SETTINGS: TOGGLES & CHROME CUSTOMIZATION ---------- */
+  .settings-row{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:10px; margin-bottom: 10px;
+  }
+  .settings-row:last-child{ margin-bottom: 0; }
+  .row-text{ min-width:0; }
+  .row-label{ font-size: 12.5px; font-weight: 600; color: var(--text-primary); }
+  .row-sub{ font-size: 10.5px; color: var(--text-tertiary); margin-top: 1px; }
+
+  .switch{
+    position: relative;
+    width: 36px; height: 21px; flex-shrink: 0;
+    border-radius: 999px;
+    background: var(--border-strong);
+    border: none; padding: 0; cursor: pointer;
+    transition: background .15s ease;
+  }
+  .switch::after{
+    content: "";
+    position: absolute; top: 2px; left: 2px;
+    width: 17px; height: 17px; border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    transition: transform .15s ease;
+  }
+  .switch.on{ background: var(--accent); }
+  .switch.on::after{ transform: translateX(15px); }
+  .switch:disabled{ opacity: 0.4; cursor: not-allowed; }
+
+  .settings-subrow{ display:flex; gap:8px; margin-top:10px; }
+  .settings-btn-sm{
+    flex:1;
+    font: inherit; font-size: 11.5px; font-weight: 600;
+    padding: 7px 8px;
+    border-radius: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    cursor: pointer; text-align:center;
+    transition: background .12s ease, color .12s ease;
+  }
+  .settings-btn-sm:hover{ background: var(--surface-hover); color: var(--text-primary); }
+  .settings-btn-sm:disabled{ opacity:0.4; cursor:not-allowed; }
+  .settings-hint{ font-size: 10.5px; color: var(--text-tertiary); margin-top: 8px; line-height:1.4; }
+
+  .wp-swatch.wp-custom{
+    display:flex; align-items:center; justify-content:center;
+    position: relative;
+    background-color: var(--bg-0);
+    background-size: cover;
+    background-position: center;
+    color: var(--text-tertiary);
+    overflow: hidden;
+  }
+  .wp-swatch.wp-custom svg{ width:15px; height:15px; }
+  .wp-custom-edit{
+    position:absolute; top:3px; right:3px;
+    width:15px; height:15px; border-radius:50%;
+    background: rgba(0,0,0,0.55);
+    color:#fff;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .wp-custom-edit svg{ width:8px; height:8px; }
+
+  .fit-select-wrap{ position:relative; margin-top:10px; }
+  .fit-select{
+    width:100%;
+    appearance:none; -webkit-appearance:none;
+    font: inherit; font-size:12.5px; font-weight:600;
+    color: var(--text-primary);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 8px 30px 8px 10px;
+    cursor: pointer;
+  }
+  .fit-select:hover{ background: var(--surface-hover); }
+  .fit-select-chevron{
+    position:absolute; right:9px; top:50%; transform:translateY(-50%);
+    width:13px; height:13px; color:var(--text-tertiary);
+    pointer-events:none; display:flex;
+  }
+  .fit-select-chevron svg{ width:13px; height:13px; }
+
+  .btn-reset{
+    width:100%;
+    margin-top:16px;
+    font: inherit; font-size:12.5px; font-weight:700;
+    padding: 9px 10px;
+    border-radius: 9px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--danger);
+    cursor: pointer;
+    text-align:center;
+    transition: background .12s ease;
+  }
+  .btn-reset:hover{ background: color-mix(in srgb, var(--danger) 14%, var(--surface)); }
+
+  
+
+  /* wallpaper gallery */
+  .wp-gallery{ display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; }
+  .wp-thumb{ position:relative; aspect-ratio:16/10; border-radius:8px; border:2px solid transparent; background-size:cover; background-position:center; cursor:pointer; }
+  .wp-thumb:hover{ filter:brightness(1.1); }
+  .wp-thumb.active{ border-color:var(--accent); }
+  .wp-thumb .wp-x{ position:absolute; top:2px; right:2px; width:16px; height:16px; border-radius:50%; background:rgba(0,0,0,.65); color:#fff; font-size:12px; line-height:16px; text-align:center; display:none; }
+  .wp-thumb:hover .wp-x{ display:block; }
+  @media (hover:none){ .wp-thumb .wp-x{ display:block; } }
+  .wp-thumb.add{ border:2px dashed var(--border-strong); display:flex; align-items:center; justify-content:center; font-size:20px; color:var(--text-primary); opacity:.7; }
+  #wpGalleryNote:empty{ display:none; }
+
+  .wp-gallery{ max-height:190px; overflow-y:auto; }
+  .wp-video-actions{ display:flex; gap:6px; flex-shrink:0; }
+  .wp-video-actions .fit-select{ width:auto; padding:5px 10px; }
+  /* video wallpaper sits behind the webtop; the old picture fades out on top of the new one */
+  .wp-video{ position:fixed; inset:0; width:100%; height:100%; z-index:-1; opacity:0; transition:opacity 1s ease; pointer-events:none; }
+  .wp-video.on{ opacity:1; }
+  .wp-fadeout{ position:fixed; inset:0; z-index:0; opacity:1; transition:opacity 1.2s ease; pointer-events:none; }
+
+  /* draggable popup title bars */
+  .pop-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:12px; font-weight:700; cursor:grab; user-select:none; -webkit-user-select:none; touch-action:none; }
+  .pop-head:active{ cursor:grabbing; }
+  .pop-hint{ font-weight:500; opacity:.5; font-size:11px; }
+  .pop-close{ cursor:pointer; font-size:18px; line-height:1; padding:0 6px; border-radius:6px; opacity:.7; }
+  .pop-close:hover{ opacity:1; background:rgba(128,128,128,.25); }
+  #settingsPop .pop-head{ position:sticky; top:-16px; margin:-16px -16px 10px; padding:11px 16px; background:var(--bg-1); border-bottom:1px solid var(--border); border-radius:14px 14px 0 0; z-index:2; }
+  .widget-pop .pop-head{ margin:-12px -12px 0; padding:10px 12px; border-bottom:1px solid var(--border); }
+  .widget-pop.moving, #settingsPop.moving{ opacity:.95; }
