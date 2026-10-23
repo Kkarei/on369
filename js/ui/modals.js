@@ -37,6 +37,8 @@ function openItemModal(ctx){
   colorPicks.querySelectorAll(".colorpick").forEach(d=>d.classList.toggle("active", d.dataset.color===modalColor));
   itemOverlay.classList.add("open");
   setTimeout(()=> itemLabel.focus(), 30);
+  if(ctx.mode === "create" && ctx.type !== "folder") autofillUrlFromClipboard(ctx);
+  else showClipHint("");
 }
 
 function closeItemModal(){ itemOverlay.classList.remove("open"); modalCtx = null; }

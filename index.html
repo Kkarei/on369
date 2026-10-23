@@ -152,6 +152,10 @@
       <option value="off">Hidden</option><option value="top">In the top bar</option><option value="bottom">As a footnote</option>
     </select>
   </div>
+  <div class="settings-row">
+    <div class="row-text"><div class="row-label">Fill in copied links</div><div class="row-sub">When adding a bookmark or web app</div></div>
+    <button type="button" class="switch" id="clipFillToggle" role="switch" aria-checked="true" aria-label="Fill in links from the clipboard"></button>
+  </div>
   <div class="pop-label">Icon size</div>
   <div class="icon-size-row">
     <div class="iconbtn" id="iconSizeDown" role="button" tabindex="0" aria-label="Decrease icon size" title="Smaller icons">
@@ -243,7 +247,11 @@
     </div>
     <div class="field" id="urlField">
       <label for="itemUrl">URL</label>
-      <input type="url" id="itemUrl" placeholder="https://example.com" autocomplete="off">
+      <div class="url-row">
+        <input type="url" id="itemUrl" placeholder="https://example.com" autocomplete="off">
+        <button type="button" class="btn" id="urlPaste" title="Paste a link from your clipboard">Paste</button>
+      </div>
+      <div class="clip-hint" id="clipHint" style="display:none"><span id="clipHintText"></span><button type="button" id="clipClear">Clear</button></div>
     </div>
     <div class="field" id="colorField">
       <label id="colorFieldLabel">Color</label>
@@ -357,6 +365,7 @@
 <script src="js/ui/popups.js"></script>
 <script src="js/ui/user-note.js"></script>
 <script src="js/ui/modals.js"></script>
+<script src="js/services/clipboard-url.js"></script>
 <script src="js/windows/window-manager.js"></script>
 <script src="js/ui/app-picker.js"></script>
 <script src="js/services/bookmark-import.js"></script>

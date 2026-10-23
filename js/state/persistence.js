@@ -18,6 +18,7 @@ async function persistPrefs(){
       { key:"wallpaperFit", value: state.wallpaperFit },
       { key:"wallpaperShow", value: state.wallpaperShow },
       { key:"userNote", value: state.userNote },
+      { key:"clipboardUrlFill", value: state.clipboardUrlFill },
       { key:"timeFormat", value: state.timeFormat },
       { key:"dateFormat", value: state.dateFormat },
       { key:"timeZone", value: state.timeZone }

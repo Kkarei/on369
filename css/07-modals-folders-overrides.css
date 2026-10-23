@@ -181,3 +181,10 @@
   html[data-theme="daylight"]{ color-scheme: light; }
   html:not([data-theme="daylight"]){ color-scheme: dark; }
   select option, select optgroup{ background-color: var(--bg-1); color: var(--text-primary); }
+
+  /* URL field with a Paste button, and the "filled from clipboard" note */
+  .url-row{ display:flex; gap:8px; }
+  .url-row input{ flex:1; min-width:0; }
+  .url-row .btn{ flex-shrink:0; }
+  .clip-hint{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:6px; font-size:12px; color:var(--text-secondary); }
+  .clip-hint button{ background:none; border:none; color:var(--accent); cursor:pointer; font-size:12px; font-family:inherit; padding:2px 4px; }
