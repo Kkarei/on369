@@ -18,7 +18,7 @@ js/                 loaded in the order listed in index.html
   models/           item classes (bookmark, folder, app, web app, widget)
   data/             IndexedDB store (+ localStorage fallback)
   state/            app state, saving, first-run setup and loading
-  ui/               DOM refs, draggable popups, themes/settings, wallpaper gallery + slideshow, clock/calendar, glyphs, modals, search, app picker
+  ui/               DOM refs, draggable popups, your note (top bar / footnote), themes/settings, wallpaper gallery + slideshow, clock/calendar, glyphs, modals, search, app picker
   webtop/          grid, render, widgets, widgets (Shelf to group icons, Clock in 6 styles, Calendar in 2 styles), selection, clipboard, drag/click, delete, menus
   windows/          floating window manager
   services/         bookmark import/export, web-app enrichment, cloud backup, file backup
