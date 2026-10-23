@@ -218,3 +218,12 @@
   #settingsPop .pop-head{ position:sticky; top:-16px; margin:-16px -16px 10px; padding:11px 16px; background:var(--bg-1); border-bottom:1px solid var(--border); border-radius:14px 14px 0 0; z-index:2; }
   .widget-pop .pop-head{ margin:-12px -12px 0; padding:10px 12px; border-bottom:1px solid var(--border); }
   .widget-pop.moving, #settingsPop.moving{ opacity:.95; }
+
+  /* usernote */
+  .user-note-top{ flex:1; min-width:0; margin:0 14px; text-align:center; font-size:13px; font-style:italic; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .user-note-foot{ position:fixed; left:50%; transform:translateX(-50%); bottom:calc(16px + var(--safe-bottom)); max-width:calc(100vw - 230px); font-size:12px; font-style:italic; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; z-index:390; pointer-events:none; transition:bottom .16s ease; }
+  body.has-taskbar .user-note-foot{ bottom:calc(68px + var(--safe-bottom)); }
+  .note-field{ display:flex; align-items:center; gap:8px; }
+  .note-input{ flex:1; min-width:0; border:1px solid var(--border-strong); background:var(--bg-0); color:var(--text-primary); border-radius:8px; padding:8px 10px; font-size:13px; font-family:inherit; outline:none; }
+  .note-input:focus{ outline:1.5px solid var(--accent); }
+  .note-count{ font-size:11px; opacity:.55; font-family:var(--font-mono); }

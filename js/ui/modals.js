@@ -100,8 +100,27 @@ function initUiModals(){
   });
 
   /* ============ FAB ============ */
-  document.getElementById("fab").addEventListener("click", ()=>{
-    openItemModal({ mode:"create", type:"bookmark", parentId: currentFolderId });
-  });
+  const fab = document.getElementById("fab");
+  const openAddMenu = ()=>{
+    const parentId = currentFolderId, onWebtop = parentId === null;
+    const n = state.icons.filter(i=> i.type === "widget").length, wx = 60 + (n % 8) * 26, wy = 130 + (n % 8) * 26;   // stagger new widgets so they don't stack exactly
+    const items = [
+      { label:"Bookmark", icon:"bookmark", action: ()=> openItemModal({ mode:"create", type:"bookmark", parentId }) },
+      { label:"Folder", icon:"folder", action: ()=> openItemModal({ mode:"create", type:"folder", parentId }) },
+      { label:"Web app (from a website)", icon:"globe", action: ()=> openItemModal({ mode:"create", type:"webapp", parentId }) },
+      { label:"Native app\u2026", icon:"grid", hint:"Calculator, Todo\u2026", action: ()=> openAppPicker(parentId) }
+    ];
+    if(onWebtop) items.push({ label:"Widget", icon:"grid", submenu: [
+      { label:"Shelf (group icons)", icon:"grid", action: ()=> openWidgetSettings(addWidget(wx, wy, []), window.innerWidth - 260, 120) },
+      { label:"Clock", icon:"clock", action: ()=> openClockSettings(addClockWidget(wx, wy), window.innerWidth - 260, 120) },
+      { label:"Calendar", icon:"calendar", action: ()=> openClockSettings(addCalendarWidget(wx, wy), window.innerWidth - 260, 120) }
+    ] });
+    items.push("sep", { label:"Import bookmarks\u2026", icon:"import", action: ()=> triggerBookmarkImport(parentId) });
+    if(clipboard && clipboard.itemIds.length) items.push({ label: clipboard.mode === "copy" ? "Paste" : "Paste (move here)", icon:"paste", action: ()=> pasteClipboard(parentId) });
+    const r = fab.getBoundingClientRect();
+    buildMenu(items, Math.max(8, r.right - 210), Math.max(8, r.top - (items.length * 34 + 30) - 8));
+  };
+  fab.addEventListener("click", (e)=>{ e.stopPropagation(); openAddMenu(); });
+  fab.addEventListener("keydown", (e)=>{ if(e.key === "Enter" || e.key === " "){ e.preventDefault(); openAddMenu(); } });
 
 }

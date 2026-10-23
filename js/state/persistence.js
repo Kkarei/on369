@@ -17,6 +17,7 @@ async function persistPrefs(){
       { key:"showSearchBar", value: state.showSearchBar },
       { key:"wallpaperFit", value: state.wallpaperFit },
       { key:"wallpaperShow", value: state.wallpaperShow },
+      { key:"userNote", value: state.userNote },
       { key:"timeFormat", value: state.timeFormat },
       { key:"dateFormat", value: state.dateFormat },
       { key:"timeZone", value: state.timeZone }

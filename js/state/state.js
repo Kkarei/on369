@@ -16,6 +16,7 @@ function seedState(){
     customWallpaperImage: null,
     wallpaperFit: "fill",
     myWallpapers: [],
+    userNote: { text:"", position:"off", updatedAt:0 },
     wallpaperShow: { on:false, minutes:15, source:"all", shuffle:false, last:0 },
     timeFormat: "auto",
     dateFormat: "weekday-short",
@@ -36,7 +37,7 @@ function seedState(){
 // existing read (childrenOf, glyphFor, render, search, drag/drop, etc.)
 // keeps working completely unchanged against this synchronous object.
 // Only persistence became async; reads did not.
-let state = { theme:"verdant", wallpaper:"dots", searchEngine:"google", iconScale:1, builtinAppsSeeded:false, notesAppSeeded:false, cloudAppSeeded:false, defaultThemeMigrated:false, verdantDefaultMigrated:false, chromeLocked:true, showLogo:true, showSearchBar:true, customLogo:null, customWallpaperImage:null, wallpaperFit:"fill", myWallpapers:[], wallpaperShow:{ on:false, minutes:15, source:"all", shuffle:false, last:0 }, timeFormat:"auto", dateFormat:"weekday-short", timeZone:null, icons: [] };
+let state = { theme:"verdant", wallpaper:"dots", searchEngine:"google", iconScale:1, builtinAppsSeeded:false, notesAppSeeded:false, cloudAppSeeded:false, defaultThemeMigrated:false, verdantDefaultMigrated:false, chromeLocked:true, showLogo:true, showSearchBar:true, customLogo:null, customWallpaperImage:null, wallpaperFit:"fill", myWallpapers:[], userNote:{ text:"", position:"off", updatedAt:0 }, wallpaperShow:{ on:false, minutes:15, source:"all", shuffle:false, last:0 }, timeFormat:"auto", dateFormat:"weekday-short", timeZone:null, icons: [] };
 
 let currentFolderId = null; // null = root webtop
 

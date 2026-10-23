@@ -17,6 +17,7 @@ const CALENDAR_STYLES = {
   week:  { name:"Week strip", group:"Calendar", w:360, h:120, build:buildWeekCalendar }
 };
 const clockUpdaters = new Map();
+const calViews = new Map();     // month each calendar widget is showing, so a redraw of the webtop does not snap it back to today
 const pad2 = (n)=> String(n).padStart(2, "0");
 
 function uses12h(){
@@ -124,9 +125,10 @@ function monthCells(y, m, weekStartMon, today){
 function buildMonthCalendar(root, w){
   root.innerHTML = `<div class="clk cal-month"><div class="k-head"><span class="k-title"></span><span class="k-nav"><b class="k-prev" title="Previous month">\u2039</b><b class="k-now" title="Back to today">\u25CF</b><b class="k-next" title="Next month">\u203A</b></span></div><div class="k-dow"></div><div class="k-grid"></div></div>`;
   const q = (c)=> root.querySelector(c), title = q(".k-title"), dow = q(".k-dow"), grid = q(".k-grid");
-  let view = null, key = "";
+  let view = calViews.get(w.id) || null, key = "";
   const draw = ()=>{
     const t = todayParts(); if(!view) view = { y: t.y, m: t.m };
+    calViews.set(w.id, view);
     const k = [view.y, view.m, t.y, t.m, t.d, w.weekStartMon].join();
     if(k === key) return; key = k;
     title.textContent = new Date(Date.UTC(view.y, view.m, 1)).toLocaleDateString([], { month:"long", year:"numeric", timeZone:"UTC" });
@@ -138,9 +140,9 @@ function buildMonthCalendar(root, w){
       s.appendChild(n); grid.appendChild(s);
     });
   };
-  const go = (dm)=>{ const t = todayParts(); if(!view) view = { y: t.y, m: t.m }; const d = new Date(Date.UTC(view.y, view.m + dm, 1)); view = { y: d.getUTCFullYear(), m: d.getUTCMonth() }; key = ""; draw(); };
+  const go = (dm)=>{ const t = todayParts(); if(!view) view = { y: t.y, m: t.m }; const d = new Date(Date.UTC(view.y, view.m + dm, 1)); view = { y: d.getUTCFullYear(), m: d.getUTCMonth() }; calViews.set(w.id, view); key = ""; draw(); };
   q(".k-prev").addEventListener("click", ()=> go(-1)); q(".k-next").addEventListener("click", ()=> go(1));
-  q(".k-now").addEventListener("click", ()=>{ view = null; key = ""; draw(); });
+  q(".k-now").addEventListener("click", ()=>{ view = null; calViews.delete(w.id); key = ""; draw(); });
   return draw;
 }
 function buildWeekCalendar(root, w){
@@ -204,7 +206,10 @@ function renderClockWidget(w){
   const update = def.build(face, w);
   clockUpdaters.set(w.id, update); update(clockParts(new Date()));
 
-  el.addEventListener("click", (e)=>{ if(e.target.closest(".clk-date")){ e.stopPropagation(); toggleCalendar(); } });   // the date opens the calendar
+  el.addEventListener("click", (e)=>{
+    if(e.target.closest(".clk-date")){ e.stopPropagation(); toggleCalendar(); }
+    else if(e.target.closest(".k-nav")) e.stopPropagation();   // the arrows must not fall through to the webtop, which redraws everything
+  });   // the date opens the calendar
   el.addEventListener("contextmenu", (e)=>{ e.preventDefault(); e.stopPropagation(); openClockSettings(w, e.clientX, e.clientY); });
   cog.addEventListener("click", ()=>{ const rc = cog.getBoundingClientRect(); openClockSettings(w, rc.left, rc.bottom + 6); });
   el.addEventListener("pointerdown", (e)=>{
