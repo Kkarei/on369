@@ -71,6 +71,7 @@ class WidgetItem extends WebtopItem{
     this.opacity = o.opacity ?? 0.35; this.blur = o.blur !== false; this.collapsed = !!o.collapsed;
     this.kind = ["clock", "calendar", "board"].includes(o.kind) ? o.kind : "group";   // "group" (a Shelf) holds icons; "clock" and "calendar" show their own content
     this.calStyle = o.calStyle || "month"; this.weekStartMon = !!o.weekStartMon;
+    this.embedded = !!o.embedded;      // a shelf that lives inside a board tile (drawn there, not on its own)
     this.cols = o.cols || 8; this.tiles = Array.isArray(o.tiles) ? o.tiles : []; this.tstyle = o.tstyle || {};   // boards
     this.clockStyle = o.clockStyle || "poster"; this.accent = o.accent || "";
     this.showSeconds = !!o.showSeconds; this.showDate = o.showDate !== false;

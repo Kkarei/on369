@@ -15,14 +15,15 @@
 .wt-icons button.on{ border-color:var(--accent); background:color-mix(in srgb, var(--accent) 25%, var(--bg-0)); }
 
 /* ---------- BOARDS ---------- */
-.board-widget{ padding:0 12px 12px; overflow:visible; transform-origin:0 0; }
+.board-widget{ position:absolute; left:12px; right:12px; width:auto; display:flex; flex-direction:column; padding:0 8px 8px; overflow:visible; }
+.board-widget.compact{ left:8px; right:8px; min-height:0 !important; }
 .board-widget.bare{ border-color:transparent; box-shadow:none; }
-.board-head{ display:flex; align-items:center; gap:6px; padding:8px 2px 8px; min-height:34px; cursor:grab; user-select:none; -webkit-user-select:none; touch-action:none; }
+.board-head{ display:flex; align-items:center; gap:6px; padding:8px 2px 8px; min-height:34px; user-select:none; -webkit-user-select:none; }
 .board-title{ flex:1; min-width:0; font-weight:700; font-size:13px; opacity:.9; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .board-btn{ cursor:pointer; padding:4px 9px; border-radius:8px; opacity:.6; font:600 12px var(--font-body); background:transparent; border:none; color:inherit; }
 .board-btn:hover{ opacity:1; background:rgba(128,128,128,.25); }
 .board-btn.on{ background:var(--accent); color:#fff; opacity:1; }
-.board-grid{ display:grid; grid-template-columns:repeat(var(--cols), var(--cell)); grid-auto-rows:var(--cell); gap:var(--gap); }
+.board-grid{ display:grid; flex:1 1 auto; grid-auto-rows:84px; }
 .board-empty{ padding:24px 8px; text-align:center; font-size:13px; opacity:.7; }
 .tile{ position:relative; container-type:size; overflow:hidden; box-sizing:border-box; color:var(--text-primary); box-shadow:0 2px 10px rgba(0,0,0,.18); }
 .tile-body{ position:absolute; inset:0; padding:10px 12px; display:flex; flex-direction:column; gap:6px; min-height:0; }
@@ -94,3 +95,7 @@
 .pv-empty{ grid-column:1 / -1; text-align:center; font-size:11px; opacity:.5; align-self:center; }
 .preset-x{ position:absolute; top:6px; right:8px; font-size:16px; opacity:.5; }
 .preset-x:hover{ opacity:1; color:#ea6b83; }
+/* shelf tiles: a shelf inside a board, holding icons */
+.tile-shelf .tile-body{ padding:8px 10px; }
+.shelf-body{ position:relative; flex:1; min-height:0; overflow:auto; border-radius:8px; }
+.tile-shelf.editing .shelf-body{ pointer-events:none; }

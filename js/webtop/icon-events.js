@@ -10,14 +10,14 @@ let dragState = null;
 // getBoundingClientRect/offsetWidth, which depend on real browser layout.
 function containerFor(parentId){
   if(parentId === null) return gridLayer;
-  if(widgetById(parentId)) return gridLayer.querySelector(`.widget[data-id="${parentId}"] .widget-body`) || gridLayer;
+  if(widgetById(parentId)) return gridLayer.querySelector(`.widget[data-id="${parentId}"] .widget-body, [data-shelf="${parentId}"]`) || gridLayer;
   return folderBody;
 }
 
 function handleWidgetDrop(item, parentId, ev){
   if(parentId !== null && !widgetById(parentId)) return false;
-  const el = document.elementsFromPoint(ev.clientX, ev.clientY).find(n=> n.classList && n.classList.contains("widget") && n.dataset.kind === "group");
-  const target = el ? el.dataset.id : null;
+  const el = document.elementsFromPoint(ev.clientX, ev.clientY).find(n=> n.dataset && (n.dataset.shelf || n.dataset.shelfDrop || (n.classList.contains("widget") && n.dataset.kind === "group")));
+  const target = el ? (el.dataset.shelf || el.dataset.shelfDrop || el.dataset.id) : null;
   if(target === parentId) return false;
   const ids = selected.has(item.id) && selected.size > 1 ? Array.from(selected) : [item.id];
   const cell = getCellSize(), off = getGridOffset(null), gr = gridLayer.getBoundingClientRect();
@@ -67,8 +67,8 @@ async function moveOutOfFolder(item, fromFolderId, ev){
   const ids = selected.has(item.id) && selected.size > 1 ? Array.from(selected) : [item.id];
   const moving = new Set(ids);
   const under = document.elementsFromPoint(ev.clientX, ev.clientY);
-  const widgetEl = under.find(n=> n.classList && n.classList.contains("widget") && n.dataset.kind === "group");
-  let destId = widgetEl ? widgetEl.dataset.id : null;
+  const widgetEl = under.find(n=> n.dataset && (n.dataset.shelf || n.dataset.shelfDrop || (n.classList.contains("widget") && n.dataset.kind === "group")));
+  let destId = widgetEl ? (widgetEl.dataset.shelf || widgetEl.dataset.shelfDrop || widgetEl.dataset.id) : null;
   if(!destId){
     const folderEl = under.find(n=> n.classList && n.classList.contains("icon") && n.dataset.id && !moving.has(n.dataset.id)
       && (state.icons.find(i=> i.id === n.dataset.id) || {}).type === "folder" && gridLayer.contains(n));

@@ -116,7 +116,7 @@ function initUiModals(){
       { label:"Shelf (group icons)", icon:"grid", action: ()=> openWidgetSettings(addWidget(wx, wy, []), window.innerWidth - 260, 120) },
       { label:"Clock", icon:"clock", action: ()=> openClockSettings(addClockWidget(wx, wy), window.innerWidth - 260, 120) },
       { label:"Calendar", icon:"calendar", action: ()=> openClockSettings(addCalendarWidget(wx, wy), window.innerWidth - 260, 120) },
-      { label:"Board (presets)\u2026", icon:"grid", action: ()=> openBoardPresetPicker({ title:"Add a board", onPick: (p)=> addBoardWidget(wx, wy, p) }) }
+      { label:"Board (presets)\u2026", icon:"grid", action: ()=> openBoardPresetPicker({ title:"Add a board", onPick: (p)=> startAddBoard(p) }) }
     ] });
     items.push("sep", { label:"Import bookmarks\u2026", icon:"import", action: ()=> triggerBookmarkImport(parentId) });
     if(clipboard && clipboard.itemIds.length) items.push({ label: clipboard.mode === "copy" ? "Paste" : "Paste (move here)", icon:"paste", action: ()=> pasteClipboard(parentId) });

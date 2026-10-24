@@ -142,7 +142,7 @@ function showCanvasContextMenu(x, y, parentId){
       { label:"Shelf (group icons)", icon:"grid", action: ()=> openWidgetSettings(addWidget(wx, wy, []), x, y) },
       { label:"Clock", icon:"clock", action: ()=> openClockSettings(addClockWidget(wx, wy), x, y) },
       { label:"Calendar", icon:"calendar", action: ()=> openClockSettings(addCalendarWidget(wx, wy), x, y) },
-      { label:"Board (presets)\u2026", icon:"grid", action: ()=> openBoardPresetPicker({ title:"Add a board", onPick: (p)=> addBoardWidget(wx, wy, p) }) }
+      { label:"Board (presets)\u2026", icon:"grid", action: ()=> openBoardPresetPicker({ title:"Add a board", onPick: (p)=> startAddBoard(p) }) }
     ] });
   }
   items.push({ label:"New folder", icon:"folder", action: ()=> openItemModal({mode:"create", type:"folder", parentId}) });

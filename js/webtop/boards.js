@@ -13,9 +13,10 @@ const TILE_TYPES = {
   clock:    { name:"Clock",       icon:"\u{1F552}",        desc:"Any time zone",           w:2, h:1 },
   calendar: { name:"Calendar",    icon:"\u{1F4C5}",        desc:"Month or week",           w:2, h:3 },
   note:     { name:"Note",        icon:"\u{1F4DD}",        desc:"Quick text",              w:2, h:2 },
-  forecast: { name:"Forecast",    icon:"\u26C5",           desc:"Weather (needs internet)", w:2, h:5 }
+  forecast: { name:"Forecast",    icon:"\u26C5",           desc:"Weather (needs internet)", w:2, h:5 },
+  shelf:    { name:"Shelf",       icon:"\u{1F5C2}\uFE0F", desc:"Holds icons you drag in",  w:3, h:3 }
 };
-const TILE_PREVIEW_COLORS = { todo:"#7c9cff", search:"#9aa5b1", link:"#ffb454", links:"#f08fb0", clock:"#5fd3b3", calendar:"#c792ea", note:"#f6d365", forecast:"#6ec6ff" };
+const TILE_PREVIEW_COLORS = { todo:"#7c9cff", search:"#9aa5b1", link:"#ffb454", links:"#f08fb0", clock:"#5fd3b3", calendar:"#c792ea", note:"#f6d365", forecast:"#6ec6ff", shelf:"#ff8a65" };
 const TILE_COLORS = ["#0f172a", "#17473f", "#3b1d4a", "#4a1d2b", "#1e3a5f", "#2b2b2b", "#f4f1ea", "#e3edf9"];
 const TZ_CHOICES = ["", "UTC", "Africa/Nairobi", "Africa/Lagos", "Africa/Cairo", "Africa/Johannesburg", "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles", "America/Toronto", "America/Sao_Paulo", "Europe/London", "Europe/Paris", "Europe/Berlin", "Europe/Madrid", "Europe/Moscow", "Asia/Dubai", "Asia/Kolkata", "Asia/Bangkok", "Asia/Shanghai", "Asia/Singapore", "Asia/Tokyo", "Asia/Seoul", "Australia/Sydney", "Pacific/Auckland"];
 const DEFAULT_TSTYLE = { color:"#0f172a", opacity:0.72, radius:14, gap:10, accent:"" };
@@ -55,6 +56,7 @@ function tileDefaults(type){
     case "calendar": return { style:"month", weekStartMon:false };
     case "note": return { title:"Note", text:"" };
     case "forecast": return { city:"", lat:null, lon:null, place:"", unit:"c", days:5 };
+    case "shelf": return { title:"Shelf", shelfId:"" };
   }
   return {};
 }
@@ -87,6 +89,9 @@ const BOARD_PRESETS = [
     ["clock",0,0,2,2,{ style:"classic", label:"Local" }], ["clock",2,0,2,2,{ style:"classic", tz:"Europe/London", label:"London" }], ["clock",4,0,2,2,{ style:"classic", tz:"Asia/Tokyo", label:"Tokyo" }],
     ["note",0,2,6,1,{ title:"Meeting planner" }]
   ] },
+  { id:"shelves", name:"Shelves", desc:"Two shelves for your icons, plus tasks and a note", cols:6, tiles:[
+    ["shelf",0,0,3,3,{ title:"Daily" }], ["shelf",3,0,3,3,{ title:"Projects" }], ["todo",0,3,3,2,{ title:"Today" }], ["note",3,3,3,2,{ title:"Notes" }]
+  ] },
   { id:"blank", name:"Blank board", desc:"Start empty and add your own tiles", cols:6, tiles:[] }
 ];
 const allBoardPresets = ()=> BOARD_PRESETS.concat(Array.isArray(state.boardPresets) ? state.boardPresets : []);
@@ -100,17 +105,88 @@ function boardStyle(w){
   s.radius = Math.max(0, Math.min(40, Number(s.radius) || 0)); s.gap = Math.max(0, Math.min(30, Number.isFinite(Number(s.gap)) ? Number(s.gap) : 10));
   return s;
 }
-function addBoardWidget(wx, wy, preset){
+// ----- shelves that live inside boards (a Shelf tile is a hidden "shelf" widget whose icons are drawn in the tile)
+function newShelfFor(tile){
+  const s = createItem("widget", { kind:"group", embedded:true, label: tile.p.title || "Shelf", pw:300, ph:200, opacity:0, blur:false, color:"#0b0f1a", parentId:null, space: state.activeWebtop });
+  state.icons.push(s); tile.p.shelfId = s.id; return s;
+}
+const shelfOf = (tile)=> state.icons.find(i=> i.id === tile.p.shelfId && i.type === "widget");
+function ensureShelves(w){ w.tiles.forEach(t=>{ if(t.type === "shelf" && !shelfOf(t)) newShelfFor(t); }); }
+// Removing a shelf tile never loses icons: they go back onto the webtop.
+function releaseShelf(tile){
+  const s = shelfOf(tile); if(!s) return;
+  childrenOf(s.id).forEach(it=>{ const slot = nextFreeSlot(null); it.parentId = null; it.x = slot.x; it.y = slot.y; });
+  state.icons = state.icons.filter(i=> i.id !== s.id);
+}
+const releaseBoardShelves = (w)=> w.tiles.filter(t=> t.type === "shelf").forEach(releaseShelf);
+function removeTile(w, tile){ if(tile.type === "shelf") releaseShelf(tile); w.tiles = w.tiles.filter(x=> x !== tile); save(); render(); }
+function reflowShelf(parentId){   // icons placed when the tile was a different size may now be off to the right: tidy them into the columns that fit
+  const cols = maxColsFor(parentId), items = childrenOf(parentId);
+  if(!items.some(i=> i.x >= cols)) return;
+  items.sort((a, b)=> a.y - b.y || a.x - b.x);
+  let x = 0, y = 0; items.forEach(it=>{ it.x = x; it.y = y; if(++x >= cols){ x = 0; y++; } });
+  save();
+}
+function populateShelves(root){ root.querySelectorAll("[data-shelf]").forEach(body=>{ reflowShelf(body.dataset.shelf); renderInto(body, body.dataset.shelf); }); }
+
+// ----- creating a board that fills the webtop
+function makeBoard(preset){
   const w = createItem("widget", { label: preset.id === "blank" ? "Board" : preset.name, kind:"board", cols: preset.cols, tiles: presetTiles(preset),
-    tstyle: { ...DEFAULT_TSTYLE, ...(preset.style || {}) }, opacity:0, blur:false, color:"#0b0f1a", wx: Math.max(0, Math.round(wx)), wy: Math.max(0, Math.round(wy)), parentId:null });
-  state.icons.push(w); if(preset.id === "blank") boardEditing.add(w.id);
+    tstyle: { ...DEFAULT_TSTYLE, ...(preset.style || {}) }, opacity:0, blur:false, color:"#0b0f1a", wx:0, wy:0, parentId:null });
+  ensureShelves(w); return w;
+}
+function addBoardWidget(wx, wy, preset){          // for an empty webtop; use startAddBoard when there may be something on it
+  const w = makeBoard(preset); state.icons.push(w); if(preset.id === "blank") boardEditing.add(w.id);
+  save(); render(); return w;
+}
+const CLOCK_TILE_SIZE = { poster:[2, 3], digital:[2, 1], glass:[2, 2], classic:[2, 2], rings:[2, 2], dots:[2, 2] };
+// Brings what is already on the webtop into the board: widgets become tiles as they are, loose icons go into a new shelf tile.
+function absorbIntoBoard(board){
+  const add = [];
+  state.icons.filter(i=> i.type === "widget" && i.id !== board.id && i.kind !== "board" && !i.embedded && inSpace(i)).forEach(wd=>{
+    if(wd.kind === "group"){ wd.embedded = true; add.push({ type:"shelf", w:3, h:3, p:{ title: wd.label || "Shelf", shelfId: wd.id } }); }
+    else if(wd.kind === "clock"){ const [tw, th] = CLOCK_TILE_SIZE[wd.clockStyle] || [2, 2]; add.push({ type:"clock", w:tw, h:th, p:{ ...tileDefaults("clock"), style: wd.clockStyle, showSeconds: !!wd.showSeconds, showDate: wd.showDate !== false } }); state.icons = state.icons.filter(i=> i !== wd); }
+    else if(wd.kind === "calendar"){ add.push({ type:"calendar", w: wd.calStyle === "week" ? 4 : 2, h: wd.calStyle === "week" ? 1 : 3, p:{ ...tileDefaults("calendar"), style: wd.calStyle, weekStartMon: !!wd.weekStartMon } }); state.icons = state.icons.filter(i=> i !== wd); }
+  });
+  const loose = childrenOf(null);
+  if(loose.length){
+    const tile = { type:"shelf", w:3, h: Math.max(2, Math.min(5, Math.ceil(loose.length / 3) + 1)), p:{ title:"My items", shelfId:"" } };
+    const shelf = newShelfFor({ p: tile.p }); shelf.label = "My items";
+    loose.forEach(ic=>{ const slot = nextFreeSlot(shelf.id); ic.parentId = shelf.id; ic.x = slot.x; ic.y = slot.y; });
+    add.push(tile);
+  }
+  add.forEach(t=>{ const spot = firstFreeSpot(board.tiles, board.cols, t.w, t.h); board.tiles.push({ id: uid(), type: t.type, col: spot.col, row: spot.row, w: Math.min(t.w, board.cols), h: t.h, p: t.p }); });
+  board.tiles = resolveLayout(board.tiles, board.cols);
+}
+function removeWebtopContents(board, ids){        // "replace": everything that was on the webtop is removed (undo with Ctrl+Z)
+  const gone = new Set(ids);
+  let grew = true; while(grew){ grew = false; state.icons.forEach(i=>{ if(!gone.has(i.id) && gone.has(i.parentId)){ gone.add(i.id); grew = true; } }); }
+  state.icons = state.icons.filter(i=> !gone.has(i.id) || i.id === board.id);
+}
+// The entry point for "add a board": the board fills the webtop, and if the webtop already has things on it we ask what to do with them.
+async function startAddBoard(preset){
+  const existing = state.icons.find(i=> i.type === "widget" && i.kind === "board" && inSpace(i));
+  if(existing && !(await askConfirm({ title:"This webtop already has a board", message:`A webtop has one board that fills it. Replace \u201C${existing.label}\u201D with the new one? Icons in its shelves go back onto the webtop.`, confirmLabel:"Replace board", cancelLabel:"Cancel" }))) return;
+  const looseIds = childrenOf(null).map(i=> i.id);
+  const widgetIds = state.icons.filter(i=> i.type === "widget" && i.kind !== "board" && !i.embedded && inSpace(i)).map(i=> i.id);
+  let mode = "add";
+  if(looseIds.length || widgetIds.length){
+    const parts = []; if(looseIds.length) parts.push(`${looseIds.length} icon${looseIds.length === 1 ? "" : "s"}`); if(widgetIds.length) parts.push(`${widgetIds.length} widget${widgetIds.length === 1 ? "" : "s"}`);
+    mode = await askChoice({ title:"This webtop isn't empty", message:`It has ${parts.join(" and ")}, and the board will fill the whole webtop. What should happen to them?`,
+      note:"Add to the board: your icons go into a shelf tile, and widgets become tiles just as they are. Either choice can be undone with Ctrl+Z.",
+      choices:[{ label:"Add them to the board", value:"add", primary:true }, { label:"Replace them (remove them)", value:"replace", danger:true }, { label:"Cancel", value:null }] });
+    if(!mode) return;
+  }
+  if(existing){ releaseBoardShelves(existing); boardEditing.delete(existing.id); state.icons = state.icons.filter(i=> i !== existing); }
+  const board = makeBoard(preset); state.icons.push(board);
+  if(mode === "replace") removeWebtopContents(board, looseIds.concat(widgetIds)); else absorbIntoBoard(board);
+  if(preset.id === "blank") boardEditing.add(board.id);
   save(); render();
-  return w;
 }
 // Saves a board's layout and look (without the text you typed) so it can be reused.
 function saveBoardAsPreset(w, name){
   if(state.boardPresets.length >= 8) return false;
-  const tiles = w.tiles.map(t=>{ const p = { ...t.p }; delete p.items; delete p.text; delete p.lat; delete p.lon; delete p.place; return [t.type, t.col, t.row, t.w, t.h, p]; });
+  const tiles = w.tiles.map(t=>{ const p = { ...t.p }; delete p.items; delete p.text; delete p.lat; delete p.lon; delete p.place; delete p.shelfId; return [t.type, t.col, t.row, t.w, t.h, p]; });
   state.boardPresets.push({ id:"my" + Math.random().toString(36).slice(2, 7), name: String(name).trim().slice(0, 24) || "My board", desc:"Your layout", cols: w.cols, style: boardStyle(w), tiles });
   save(); return true;
 }
@@ -228,44 +304,50 @@ function renderForecastTile(w, tile, box){
 const TILE_RENDER = { todo: renderTodoTile, search: renderSearchTile, link: renderLinkTile, links: renderLinksTile, clock: renderClockTile, calendar: renderCalendarTile, note: renderNoteTile, forecast: renderForecastTile };
 
 /* ---------- editing ---------- */
+const BOARD_TOP = 116, BOARD_BOTTOM = 76, BOARD_MIN_ROW = 64;     // the board fills the webtop between the top bar and the footer
 function applyBoardLayout(w, pinnedId){ w.tiles = resolveLayout(w.tiles, w.cols, pinnedId); save(); render(); }
 function addEditOverlay(w, tile, tEl, gridEl, st){
   const o = bx("div", "tile-edit");
   const drag = bx("div", "tile-drag"), cog = bx("button", "tile-btn", "\u2699"), del = bx("button", "tile-btn", "\u00d7"), grip = bx("div", "tile-grip");
   drag.title = "Drag to move"; cog.title = "Tile settings"; del.title = "Remove tile"; grip.title = "Drag to resize"; cog.type = del.type = "button";
   o.append(drag, cog, del, grip); tEl.appendChild(o);
-  const scale = ()=> (gridEl.getBoundingClientRect().width / gridEl.offsetWidth) || 1;
-  const unit = (k)=> (BOARD_CELL + st.gap) * k;
+  const units = ()=>{   // how many pixels one grid cell (plus gap) is, measured from the real grid
+    const r = gridEl.getBoundingClientRect(), rows = Math.max(3, boardRows(w.tiles) + 1);
+    return { ux: (r.width - (w.cols - 1) * st.gap) / w.cols + st.gap, uy: (r.height - (rows - 1) * st.gap) / rows + st.gap };
+  };
   drag.addEventListener("pointerdown", (e)=>{
     if(e.button > 0) return; e.preventDefault();
-    const k = scale(), sx = e.clientX, sy = e.clientY, c0 = tile.col, r0 = tile.row; tEl.classList.add("lifting");
-    const mv = (ev)=>{ tEl.style.transform = `translate(${(ev.clientX - sx) / k}px, ${(ev.clientY - sy) / k}px)`; };
+    const sx = e.clientX, sy = e.clientY, c0 = tile.col, r0 = tile.row; tEl.classList.add("lifting");
+    const mv = (ev)=>{ tEl.style.transform = `translate(${ev.clientX - sx}px, ${ev.clientY - sy}px)`; };
     const up = (ev)=>{
       document.removeEventListener("pointermove", mv); document.removeEventListener("pointerup", up);
-      tile.col = c0 + Math.round((ev.clientX - sx) / unit(k)); tile.row = r0 + Math.round((ev.clientY - sy) / unit(k)); applyBoardLayout(w, tile.id);
+      const { ux, uy } = units(); tile.col = c0 + Math.round((ev.clientX - sx) / ux); tile.row = r0 + Math.round((ev.clientY - sy) / uy); applyBoardLayout(w, tile.id);
     };
     document.addEventListener("pointermove", mv); document.addEventListener("pointerup", up);
   });
   grip.addEventListener("pointerdown", (e)=>{
     if(e.button > 0) return; e.preventDefault(); e.stopPropagation();
-    const k = scale(), sx = e.clientX, sy = e.clientY, w0 = tile.w, h0 = tile.h; tEl.classList.add("lifting");
-    const mv = (ev)=>{ tEl.style.width = `calc(${w0} * var(--cell) + ${w0 - 1} * var(--gap) + ${(ev.clientX - sx) / k}px)`; tEl.style.height = `calc(${h0} * var(--cell) + ${h0 - 1} * var(--gap) + ${(ev.clientY - sy) / k}px)`; tEl.style.zIndex = 5; };
+    const sx = e.clientX, sy = e.clientY, w0 = tile.w, h0 = tile.h, pw = tEl.offsetWidth, ph = tEl.offsetHeight; tEl.classList.add("lifting"); tEl.style.justifySelf = "start"; tEl.style.alignSelf = "start";
+    const mv = (ev)=>{ tEl.style.width = Math.max(40, pw + ev.clientX - sx) + "px"; tEl.style.height = Math.max(40, ph + ev.clientY - sy) + "px"; };
     const up = (ev)=>{
       document.removeEventListener("pointermove", mv); document.removeEventListener("pointerup", up);
-      tile.w = Math.max(1, Math.min(w0 + Math.round((ev.clientX - sx) / unit(k)), w.cols - tile.col)); tile.h = Math.max(1, h0 + Math.round((ev.clientY - sy) / unit(k))); applyBoardLayout(w, tile.id);
+      const { ux, uy } = units(); tile.w = Math.max(1, Math.min(w0 + Math.round((ev.clientX - sx) / ux), w.cols - tile.col)); tile.h = Math.max(1, h0 + Math.round((ev.clientY - sy) / uy)); applyBoardLayout(w, tile.id);
     };
     document.addEventListener("pointermove", mv); document.addEventListener("pointerup", up);
   });
   cog.addEventListener("click", ()=>{ const r = cog.getBoundingClientRect(); openTileSettings(w, tile, r.left, r.bottom + 6); });
-  del.addEventListener("click", ()=>{ w.tiles = w.tiles.filter(x=> x !== tile); save(); render(); });
+  del.addEventListener("click", ()=> removeTile(w, tile));
 }
-function buildTile(w, tile, st, editing, gridEl){
+function buildTile(w, tile, st, editing, gridEl, compact){
   const t = bx("div", `tile tile-${tile.type}` + (editing ? " editing" : "")), box = bx("div", "tile-body");
-  t.dataset.id = tile.id; t.style.gridColumn = `${tile.col + 1} / span ${tile.w}`; t.style.gridRow = `${tile.row + 1} / span ${tile.h}`;
+  t.dataset.id = tile.id;
+  if(compact){ t.style.gridColumn = `span ${Math.min(tile.w, 2)}`; t.style.gridRow = `span ${tile.h}`; }
+  else{ t.style.gridColumn = `${tile.col + 1} / span ${tile.w}`; t.style.gridRow = `${tile.row + 1} / span ${tile.h}`; }
   const [r, g, b] = rgbOf(st.color); t.style.background = `rgba(${r},${g},${b},${st.opacity})`; t.style.borderRadius = st.radius + "px";
   const txt = contrastText(st.color, st.opacity); if(txt) t.style.color = txt;
   t.appendChild(box);
   try{ TILE_RENDER[tile.type](w, tile, box); }catch(e){ console.warn("on369: tile failed", e); box.textContent = "This tile couldn't be drawn."; }
+  if(tile.type === "shelf") t.dataset.shelfDrop = tile.p.shelfId;
   if(editing) addEditOverlay(w, tile, t, gridEl, st);
   return t;
 }
@@ -273,45 +355,57 @@ function openAddTileMenu(w, x, y){
   buildMenu(Object.entries(TILE_TYPES).map(([type, d])=>({ label: `${d.icon}  ${d.name}`, hint: d.desc, action: ()=>{
     const spot = firstFreeSpot(w.tiles, w.cols, d.w, d.h);
     const tile = { id: uid(), type, col: spot.col, row: spot.row, w: Math.min(d.w, w.cols), h: d.h, p: tileDefaults(type) };
+    if(type === "shelf") newShelfFor(tile);
     w.tiles.push(tile); save(); render();
   } })), x, y);
 }
+function renderShelfTile(w, tile, box){
+  const shelf = shelfOf(tile) || (()=>{ const s = newShelfFor(tile); save(); return s; })();
+  const title = tile.p.title || "Shelf"; if(shelf.label !== title) shelf.label = title;
+  const body = bx("div", "shelf-body"), band = bx("div", "rubberband-box");
+  body.dataset.shelf = shelf.id; body.appendChild(band); box.append(bx("div", "t-title", title), body);
+  wireRubberBandSelect(body, body, band, false);                 // drag a box across the icons to select them
+  body.addEventListener("contextmenu", (e)=>{ if(e.target.closest(".icon")) return; e.preventDefault(); e.stopPropagation(); showCanvasContextMenu(e.clientX, e.clientY, shelf.id); });
+}
+TILE_RENDER.shelf = renderShelfTile;
 
-/* ---------- board widget ---------- */
+/* ---------- board widget: fills the whole webtop ---------- */
 function renderBoardWidget(w){
-  const st = boardStyle(w), cols = Math.max(2, Math.min(12, Number(w.cols) || 8)), gap = st.gap;
-  w.cols = cols; if(!Array.isArray(w.tiles)) w.tiles = [];
-  const editing = boardEditing.has(w.id), outerW = cols * BOARD_CELL + (cols - 1) * gap + 24;
-  const narrow = window.innerWidth <= 820, k = narrow ? Math.min(1, (window.innerWidth - 16) / outerW) : 1;
-  const left = narrow ? Math.max(8, Math.min(w.wx, window.innerWidth - outerW * k - 8)) : w.wx;
+  const st = boardStyle(w), compact = window.innerWidth <= 640;     // on a phone the tiles stack in two columns instead
+  const cols = compact ? 2 : Math.max(2, Math.min(12, Number(w.cols) || 8)), gap = st.gap;
+  if(!compact) w.cols = cols; if(!Array.isArray(w.tiles)) w.tiles = [];
+  const editing = !compact && boardEditing.has(w.id), rows = Math.max(3, boardRows(w.tiles) + (editing ? 1 : 0));
   const [pr, pg, pb] = rgbOf(/^#[0-9a-f]{6}$/i.test(w.color) ? w.color : "#0b0f1a");
-  const b = bx("div", "widget board-widget" + (w.opacity < 0.04 ? " bare" : "") + (editing ? " editing" : ""));
+  const b = bx("div", "widget board-widget" + (compact ? " compact" : "") + (w.opacity < 0.04 ? " bare" : "") + (editing ? " editing" : ""));
   b.dataset.id = w.id; b.dataset.kind = "board";
-  b.style.cssText = `left:${left}px;top:${w.wy}px;width:${outerW}px;background:rgba(${pr},${pg},${pb},${w.opacity});` + (k < 1 ? `transform:scale(${k});` : "") + (w.blur && w.opacity >= 0.04 ? "backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);" : "");
+  b.style.cssText = `top:${BOARD_TOP}px;min-height:calc(100vh - ${BOARD_TOP + BOARD_BOTTOM}px);background:rgba(${pr},${pg},${pb},${w.opacity});` + (w.blur && w.opacity >= 0.04 ? "backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);" : "");
   if(st.accent) b.style.setProperty("--clk-accent", st.accent);
-  const head = bx("div", "board-head"), title = bx("span", "board-title", w.label);
-  const edit = bx("button", "board-btn" + (editing ? " on" : ""), editing ? "Done" : "\u270E Edit"), cog = bx("button", "board-btn", "\u2699");
-  edit.type = cog.type = "button"; edit.title = editing ? "Finish editing" : "Edit the layout"; cog.title = "Board settings";
-  head.append(title);
-  if(editing){ const add = bx("button", "board-btn", "+ Add tile"); add.type = "button"; add.addEventListener("click", ()=>{ const r = add.getBoundingClientRect(); openAddTileMenu(w, r.left, r.bottom + 6); }); head.appendChild(add); }
-  head.append(edit, cog);
-  const grid = bx("div", "board-grid"); grid.style.setProperty("--cols", cols); grid.style.setProperty("--cell", BOARD_CELL + "px"); grid.style.setProperty("--gap", gap + "px");
-  w.tiles.forEach(t=> grid.appendChild(buildTile(w, t, st, editing, grid)));
+  const head = bx("div", "board-head"), title = bx("span", "board-title", w.label), cog = bx("button", "board-btn", "\u2699");
+  cog.type = "button"; cog.title = "Board settings"; head.appendChild(title);
+  if(!compact){
+    const edit = bx("button", "board-btn" + (editing ? " on" : ""), editing ? "Done" : "\u270E Edit"); edit.type = "button"; edit.title = editing ? "Finish editing" : "Edit the layout";
+    if(editing){ const add = bx("button", "board-btn", "+ Add tile"); add.type = "button"; add.addEventListener("click", ()=>{ const r = add.getBoundingClientRect(); openAddTileMenu(w, r.left, r.bottom + 6); }); head.appendChild(add); }
+    edit.addEventListener("click", ()=>{ if(boardEditing.has(w.id)) boardEditing.delete(w.id); else boardEditing.add(w.id); render(); });
+    head.appendChild(edit);
+  }
+  head.appendChild(cog);
+  const grid = bx("div", "board-grid" + (compact ? " compact" : ""));
+  grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`; grid.style.gap = gap + "px";
+  grid.style.gridTemplateRows = compact ? "" : `repeat(${rows}, minmax(${BOARD_MIN_ROW}px, 1fr))`;
+  const list = compact ? w.tiles.slice().sort((a, c)=> a.row - c.row || a.col - c.col) : w.tiles;
+  list.forEach(t=> grid.appendChild(buildTile(w, t, st, editing, grid, compact)));
   if(!w.tiles.length){ const empty = bx("div", "board-empty", editing ? "Choose \u201C+ Add tile\u201D to build your board." : "This board is empty. Press Edit to add tiles."); empty.style.gridColumn = "1 / -1"; grid.appendChild(empty); }
   b.append(head, grid); gridLayer.prepend(b);
+  populateShelves(b);                                              // shelf icons are drawn once the tiles have a real size
   title.addEventListener("dblclick", ()=> startRename(title, w));
-  edit.addEventListener("click", ()=>{ if(boardEditing.has(w.id)) boardEditing.delete(w.id); else boardEditing.add(w.id); render(); });
   cog.addEventListener("click", ()=>{ const r = cog.getBoundingClientRect(); openBoardSettings(w, r.left, r.bottom + 6); });
-  // clicks inside a board must not reach the webtop, which would redraw everything (and drop what you're typing)
-  b.addEventListener("click", (e)=>{ closeCtxMenu(); e.stopPropagation(); });
+  // a click inside a board must not reach the webtop (it would redraw everything and drop what you're typing)
+  b.addEventListener("pointerdown", ()=> closeCtxMenu(), true);
+  b.addEventListener("click", (e)=> e.stopPropagation());
   b.addEventListener("contextmenu", (e)=>{
     if(e.target.closest("input, textarea")){ e.stopPropagation(); return; }                       // keep the browser's own copy/paste menu
+    if(e.target.closest(".icon, [data-shelf]")) return;                                            // icons and shelves have their own menus
     e.preventDefault(); e.stopPropagation(); if(e.target.closest(".board-head")) openBoardSettings(w, e.clientX, e.clientY);
-  });
-  head.addEventListener("pointerdown", (e)=>{
-    if(e.target.closest(".board-btn") || e.target.isContentEditable || e.button > 0) return;
-    const x0 = w.wx, y0 = w.wy;
-    dragWidgetPart(e, (dx, dy)=>{ w.wx = Math.max(0, x0 + dx / k); w.wy = Math.max(0, y0 + dy / k); b.style.left = w.wx + "px"; b.style.top = w.wy + "px"; }, ()=>{ w.wx = Math.round(w.wx); w.wy = Math.round(w.wy); save(); });
   });
 }
 
@@ -331,6 +425,7 @@ const TILE_FIELDS = {
              { k:"label", t:"text", l:"Label (optional)", max:20 }, { k:"showSeconds", t:"check", l:"Show seconds" }, { k:"showDate", t:"check", l:"Show date" }],
   calendar: [{ k:"style", t:"select", l:"Style", opts:()=> [["month", "Month"], ["week", "Week strip"]] }, { k:"weekStartMon", t:"check", l:"Week starts on Monday" }],
   note:     [{ k:"title", t:"text", l:"Title", max:30 }],
+  shelf:    [{ k:"title", t:"text", l:"Title", max:30 }],
   forecast: [{ k:"city", t:"text", l:"City", max:60 }, { k:"unit", t:"select", l:"Units", opts:()=> [["c", "\u00b0C, km/h"], ["f", "\u00b0F, mph"]] }, { k:"days", t:"select", l:"Days (up to the tile's height)", opts:()=> [[3, "3"], [5, "5"], [7, "7"]] }]
 };
 function openTileSettings(w, tile, x, y){
@@ -356,8 +451,9 @@ function openTileSettings(w, tile, x, y){
     pop.appendChild(popField(f.l, ctl));
   });
   if(tile.type === "note") pop.appendChild(bx("div", "cloud-note", "Notes are stored unencrypted. Please don't keep passwords here."));
+  if(tile.type === "shelf") pop.appendChild(bx("div", "cloud-note", "Drag icons onto this shelf to put them in it. Removing the tile puts its icons back on the webtop."));
   const del = bx("button", "wp-del", "Remove this tile"); del.type = "button";
-  del.addEventListener("click", ()=>{ w.tiles = w.tiles.filter(x=> x !== tile); closeWidgetPop(); save(); render(); });
+  del.addEventListener("click", ()=>{ closeWidgetPop(); removeTile(w, tile); });
   const row = bx("div", "wp-row"); row.appendChild(del); pop.appendChild(row);
   showWidgetPop(pop, w, `${TILE_TYPES[tile.type].name} settings`, x, y);
 }
@@ -368,7 +464,7 @@ function openBoardSettings(w, x, y){
   pop.appendChild(popField("Name", name));
   const cols = bx("select"); for(let n = 3; n <= 12; n++){ const o = bx("option", "", n + " columns"); o.value = n; cols.appendChild(o); } cols.value = w.cols;
   cols.addEventListener("change", ()=>{ w.cols = Number(cols.value); w.tiles = resolveLayout(w.tiles, w.cols); save(); render(); });
-  pop.appendChild(popField("Width", cols));
+  pop.appendChild(popField("Columns", cols));
   const cap = (t)=>{ const d = bx("div", "wp-cap", t); return d; };
   pop.append(cap("Tile color"), swatches(TILE_COLORS, st.color, (c)=>{ w.tstyle.color = c; save(); render(); }));
   const op = bx("input"); op.type = "range"; op.min = 0; op.max = 100; op.value = Math.round((1 - st.opacity) * 100);
@@ -390,11 +486,11 @@ function openBoardSettings(w, x, y){
   const r1 = bx("div", "wp-row"); r1.append(
     mk("Change layout\u2026", ()=>{ closeWidgetPop(); openBoardPresetPicker({ title:"Replace this board's layout", onPick: async (pr)=>{
       if(w.tiles.length && !(await askConfirm({ title:"Replace the layout?", message:`This swaps the tiles on \u201C${w.label}\u201D for the \u201C${pr.name}\u201D layout. You can undo it with Ctrl+Z.`, confirmLabel:"Replace", cancelLabel:"Keep mine" }))) return;
-      w.cols = pr.cols; w.tiles = presetTiles(pr); if(pr.style) w.tstyle = { ...DEFAULT_TSTYLE, ...pr.style }; save(); render(); } }); }),
+      releaseBoardShelves(w); w.cols = pr.cols; w.tiles = presetTiles(pr); ensureShelves(w); if(pr.style) w.tstyle = { ...DEFAULT_TSTYLE, ...pr.style }; save(); render(); } }); }),
     mk("Save as preset", ()=>{ const nm = prompt("Name this layout:", w.label); if(nm === null) return; if(!saveBoardAsPreset(w, nm)) alert("You can keep up to 8 of your own presets. Delete one from the preset list first."); else statusEl.textContent = "Layout saved as a preset"; }));
   pop.appendChild(r1);
   const r2 = bx("div", "wp-row"); r2.appendChild(mk("Delete board", async ()=>{
-    if(await askConfirm({ title:"Delete this board?", message:`Delete \u201C${w.label}\u201D and all its tiles? You can undo it with Ctrl+Z.`, confirmLabel:"Delete board", cancelLabel:"Keep it" })){ closeWidgetPop(); boardEditing.delete(w.id); removeWidget(w, false); }
+    if(await askConfirm({ title:"Delete this board?", message:`Delete \u201C${w.label}\u201D and all its tiles? You can undo it with Ctrl+Z.`, confirmLabel:"Delete board", cancelLabel:"Keep it" })){ closeWidgetPop(); boardEditing.delete(w.id); releaseBoardShelves(w); removeWidget(w, false); }
   }, "wp-del")); pop.appendChild(r2);
   showWidgetPop(pop, w, "Board settings", x, y);
 }

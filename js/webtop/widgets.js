@@ -74,7 +74,9 @@ function dragWidgetPart(e, onMove, onDone){
 function renderWidgets(){
   gridLayer.querySelectorAll(".widget").forEach(n=> n.remove());
   clockUpdaters.clear();
-  state.icons.filter(i=> i.type === "widget" && inSpace(i)).forEach(w=>{
+  // boards are drawn last so they sit at the very back; shelves, clocks and icons stay on top of them
+  state.icons.filter(i=> i.type === "widget" && inSpace(i)).sort((a, b)=> (a.kind === "board") - (b.kind === "board")).forEach(w=>{
+    if(w.kind === "group" && w.embedded) return;
     if(w.kind === "clock" || w.kind === "calendar"){ renderClockWidget(w); return; }
     if(w.kind === "board"){ renderBoardWidget(w); return; }
     const hex = /^#[0-9a-f]{6}$/i.test(w.color) ? w.color : COLORS[0];

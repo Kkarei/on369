@@ -19,6 +19,7 @@ function maxColsFor(parentId){
     return Math.max(3, Math.floor((window.innerWidth - 48) / cell.w));
   }
   const wdg = widgetById(parentId);
+  if(wdg && wdg.embedded){ const c = containerFor(parentId); return Math.max(1, Math.floor(((c && c.clientWidth ? c.clientWidth : 240) - 16) / cell.w)); }
   if(wdg) return Math.max(1, Math.floor((wdg.pw - 16) / cell.w));
   // Folder panel is a fixed, narrower width (max-width: 560px, minus padding).
   return Math.max(2, Math.floor(520 / cell.w));
