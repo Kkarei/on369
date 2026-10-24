@@ -155,7 +155,7 @@ async function loadAndInit(){
     state.wallpaperFit = prefsMap.wallpaperFit || "fill";
     state.myWallpapers = Array.isArray(prefsMap.myWallpapers) ? prefsMap.myWallpapers : [];
     state.clipboardUrlFill = prefsMap.clipboardUrlFill !== false;
-    state.userNote = { text:"", position:"off", updatedAt:0, ...(prefsMap.userNote || {}) };
+    state.userNote = normalizeUserNote(prefsMap.userNote);
     state.wallpaperShow = { on:false, minutes:15, source:"all", shuffle:false, last:0, ...(prefsMap.wallpaperShow || {}) };
     state.timeFormat = prefsMap.timeFormat || "auto";
     state.dateFormat = prefsMap.dateFormat || "weekday-short";

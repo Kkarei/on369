@@ -58,4 +58,20 @@ function initUiPopups(){
   const sp = document.getElementById("settingsPop");
   makePopDraggable(sp, document.getElementById("settingsHead"));
   window.addEventListener("resize", ()=> clampPop(sp));
+  // tabs: one section of settings at a time
+  const tabs = Array.from(document.querySelectorAll("#settingsTabs .stab")), panes = Array.from(document.querySelectorAll("#settingsPop .spane"));
+  const showTab = (name)=>{
+    tabs.forEach(t=>{ const on = t.dataset.tab === name; t.classList.toggle("active", on); t.setAttribute("aria-selected", String(on)); t.tabIndex = on ? 0 : -1; });
+    panes.forEach(p=>{ p.hidden = p.dataset.pane !== name; });
+    clampPop(sp);
+  };
+  tabs.forEach((t, i)=>{
+    t.addEventListener("click", ()=> showTab(t.dataset.tab));
+    t.addEventListener("keydown", (e)=>{
+      if(e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      const nxt = tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+      showTab(nxt.dataset.tab); nxt.focus(); e.preventDefault();
+    });
+  });
+  showTab("look");
 }

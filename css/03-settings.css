@@ -2,7 +2,7 @@
   #settingsPop{
     position: fixed;
     top: 52px; right: 16px;
-    width: 264px;
+    width: 316px; max-width: calc(100vw - 24px);
     background: var(--bg-1);
     border: 1px solid var(--border);
     border-radius: 14px;
@@ -227,3 +227,25 @@
   .note-input{ flex:1; min-width:0; border:1px solid var(--border-strong); background:var(--bg-0); color:var(--text-primary); border-radius:8px; padding:8px 10px; font-size:13px; font-family:inherit; outline:none; }
   .note-input:focus{ outline:1.5px solid var(--accent); }
   .note-count{ font-size:11px; opacity:.55; font-family:var(--font-mono); }
+
+  /* settings tabs */
+  .settings-tabs{ display:flex; gap:2px; margin:0 0 14px; padding:3px; background:var(--bg-0); border-radius:10px; overflow-x:auto; }
+  .stab{ flex:1; border:none; background:transparent; color:var(--text-secondary); font:600 11px var(--font-body); padding:7px 7px; border-radius:8px; cursor:pointer; white-space:nowrap; }
+  .stab:hover{ color:var(--text-primary); }
+  .stab.active{ background:var(--bg-1); color:var(--text-primary); box-shadow:0 1px 3px rgba(0,0,0,.25); }
+  .spane[hidden]{ display:none; }
+  .spane > .pop-label:first-child{ margin-top:0; }
+  /* usernote placement picker */
+  .np-row{ display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+  .np-name{ width:58px; font-size:12px; font-weight:600; flex-shrink:0; }
+  .np-seg{ display:flex; flex:1; border:1px solid var(--border-strong); border-radius:8px; overflow:hidden; }
+  .np-seg button{ flex:1; background:var(--bg-0); color:var(--text-primary); border:none; padding:7px 0; font:12px var(--font-body); cursor:pointer; }
+  .np-seg button + button{ border-left:1px solid var(--border-strong); }
+  .np-seg button:hover{ background:var(--bg-1); }
+  .np-seg button.on{ background:var(--accent); color:#fff; font-weight:700; }
+  #notePlaceHint{ margin-top:2px; }
+  /* usernote in the footer: between the item count and the + button */
+  .user-note-foot{ left:150px; right:92px; transform:none; max-width:none; text-align:center; }
+  .user-note-foot.a-left{ text-align:left; }
+  .user-note-foot.a-right{ text-align:right; }
+  @media (max-width:600px){ .user-note-foot{ left:96px; right:78px; } }

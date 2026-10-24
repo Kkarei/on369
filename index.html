@@ -85,8 +85,28 @@
 
 <div id="settingsPop">
   <div class="pop-head" id="settingsHead" title="Drag to move"><span>Settings</span><span class="pop-hint">drag to move</span></div>
+  <div class="settings-tabs" id="settingsTabs" role="tablist" aria-label="Settings sections">
+    <button type="button" role="tab" class="stab active" data-tab="look" aria-selected="true">Look</button>
+    <button type="button" role="tab" class="stab" data-tab="wallpaper" aria-selected="false">Wallpaper</button>
+    <button type="button" role="tab" class="stab" data-tab="layout" aria-selected="false">Layout</button>
+    <button type="button" role="tab" class="stab" data-tab="note" aria-selected="false">Usernote</button>
+    <button type="button" role="tab" class="stab" data-tab="more" aria-selected="false">More</button>
+  </div>
+  <div class="spane" role="tabpanel" data-pane="look">
   <div class="pop-label">Theme</div>
   <div class="theme-grid" id="themeGrid"></div>
+  <div class="pop-label">Icon size</div>
+  <div class="icon-size-row">
+    <div class="iconbtn" id="iconSizeDown" role="button" tabindex="0" aria-label="Decrease icon size" title="Smaller icons">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"></path></svg>
+    </div>
+    <span id="iconSizeReadout">100%</span>
+    <div class="iconbtn" id="iconSizeUp" role="button" tabindex="0" aria-label="Increase icon size" title="Larger icons">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+    </div>
+  </div>
+  </div>
+  <div class="spane" role="tabpanel" data-pane="wallpaper" hidden>
   <div class="pop-label">Background pattern</div>
   <div class="wp-row">
     <div class="wp-swatch wp-dots" data-wp="dots" title="Dots"></div>
@@ -144,28 +164,8 @@
       <button type="button" class="switch" id="wpShowShuffle" role="switch" aria-checked="false" aria-label="Shuffle order"></button>
     </div>
   </div>
-  <div class="pop-label">Your note</div>
-  <div class="note-field"><input type="text" id="userNoteInput" class="note-input" maxlength="50" placeholder="Your name, a favourite quote\u2026" autocomplete="off"><span id="userNoteCount" class="note-count">0/50</span></div>
-  <div class="settings-row">
-    <div class="row-text"><div class="row-label">Show it</div><div class="row-sub">Top bar or a footnote at the bottom</div></div>
-    <select id="userNotePos" class="fit-select" style="width:auto" aria-label="Where to show your note">
-      <option value="off">Hidden</option><option value="top">In the top bar</option><option value="bottom">As a footnote</option>
-    </select>
   </div>
-  <div class="settings-row">
-    <div class="row-text"><div class="row-label">Fill in copied links</div><div class="row-sub">When adding a bookmark or web app</div></div>
-    <button type="button" class="switch" id="clipFillToggle" role="switch" aria-checked="true" aria-label="Fill in links from the clipboard"></button>
-  </div>
-  <div class="pop-label">Icon size</div>
-  <div class="icon-size-row">
-    <div class="iconbtn" id="iconSizeDown" role="button" tabindex="0" aria-label="Decrease icon size" title="Smaller icons">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"></path></svg>
-    </div>
-    <span id="iconSizeReadout">100%</span>
-    <div class="iconbtn" id="iconSizeUp" role="button" tabindex="0" aria-label="Increase icon size" title="Larger icons">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
-    </div>
-  </div>
+  <div class="spane" role="tabpanel" data-pane="layout" hidden>
   <div class="pop-label" style="margin-top:16px">Logo &amp; search bar</div>
   <div class="settings-row">
     <div class="row-text">
@@ -187,7 +187,28 @@
     <button type="button" class="settings-btn-sm" id="resetLogoBtn" disabled style="display:none">Reset logo</button>
   </div>
   <input type="file" id="logoFileInput" accept="image/*" style="display:none">
+  </div>
+  <div class="spane" role="tabpanel" data-pane="note" hidden>
+  <div class="pop-label">Usernote</div>
+  <div class="settings-row">
+    <div class="row-text"><div class="row-label">Show usernote</div><div class="row-sub">A name or a favourite quote</div></div>
+    <button type="button" class="switch" id="noteShowToggle" role="switch" aria-checked="false" aria-label="Show usernote"></button>
+  </div>
+  <div class="note-field"><input type="text" id="userNoteInput" class="note-input" maxlength="50" placeholder="Your name, a favourite quote\u2026" autocomplete="off"><span id="userNoteCount" class="note-count">0/50</span></div>
+  <div class="pop-label">Where it appears</div>
+  <div class="note-place" id="notePlace">
+    <div class="np-row"><span class="np-name">Top bar</span><div class="np-seg"><button type="button" data-pos="top" data-align="left">Left</button><button type="button" data-pos="top" data-align="center">Center</button><button type="button" data-pos="top" data-align="right">Right</button></div></div>
+    <div class="np-row"><span class="np-name">Footer</span><div class="np-seg"><button type="button" data-pos="bottom" data-align="left">Left</button><button type="button" data-pos="bottom" data-align="center">Center</button><button type="button" data-pos="bottom" data-align="right">Right</button></div></div>
+  </div>
+  <div class="row-sub" id="notePlaceHint">Left starts right after the logo, or at the edge if the logo is hidden.</div>
+  </div>
+  <div class="spane" role="tabpanel" data-pane="more" hidden>
+  <div class="settings-row">
+    <div class="row-text"><div class="row-label">Fill in copied links</div><div class="row-sub">When adding a bookmark or web app</div></div>
+    <button type="button" class="switch" id="clipFillToggle" role="switch" aria-checked="true" aria-label="Fill in links from the clipboard"></button>
+  </div>
   <button type="button" class="btn-reset" id="resetDefaultsBtn">Reset to defaults</button>
+  </div>
 </div>
 
 <!-- Reset Confirmation -->
