@@ -1,6 +1,6 @@
 # on369
 
-A browser-based personal webtop: bookmarks, web apps, native apps (Calculator, Todo, Notes), widgets, search, themes, file backup and Supabase cloud backup.
+A browser-based personal webtop: bookmarks, web apps, native apps (Calculator, Todo, Notes), widgets, search, themes, file backup and cloud backup.
 
 ## Run it
 Serve this folder over http (for example `npx serve .` or `python3 -m http.server`) and open `index.html`.
