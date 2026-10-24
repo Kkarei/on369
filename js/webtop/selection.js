@@ -54,7 +54,7 @@ function updateStatusBar(){
   if(multiSelectMode){
     statusEl.textContent = `${selected.size} selected`;
   }else{
-    const n = state.icons.filter(i=>i.parentId===null).length;
+    const n = childrenOf(null).length;
     statusEl.textContent = `${n} item${n===1?"":"s"} on webtop`;
   }
 }

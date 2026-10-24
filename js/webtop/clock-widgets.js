@@ -25,8 +25,8 @@ function uses12h(){
   if(state.timeFormat === "24h") return false;
   try{ return !!new Intl.DateTimeFormat([], { hour:"numeric" }).resolvedOptions().hour12; }catch(_){ return false; }
 }
-function clockParts(date){
-  const tz = state.timeZone || undefined, map = {};
+function clockParts(date, tzOverride){
+  const tz = tzOverride || state.timeZone || undefined, map = {};
   new Intl.DateTimeFormat("en-US", { timeZone: tz, hour:"numeric", minute:"numeric", second:"numeric", day:"numeric", hour12:false })
     .formatToParts(date).forEach(p=> map[p.type] = p.value);
   const h = Number(map.hour) % 24, m = Number(map.minute), s = Number(map.second), use12 = uses12h();

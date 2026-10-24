@@ -141,7 +141,8 @@ function showCanvasContextMenu(x, y, parentId){
     items.push({ label:"Add widget", icon:"grid", submenu: [
       { label:"Shelf (group icons)", icon:"grid", action: ()=> openWidgetSettings(addWidget(wx, wy, []), x, y) },
       { label:"Clock", icon:"clock", action: ()=> openClockSettings(addClockWidget(wx, wy), x, y) },
-      { label:"Calendar", icon:"calendar", action: ()=> openClockSettings(addCalendarWidget(wx, wy), x, y) }
+      { label:"Calendar", icon:"calendar", action: ()=> openClockSettings(addCalendarWidget(wx, wy), x, y) },
+      { label:"Board (presets)\u2026", icon:"grid", action: ()=> openBoardPresetPicker({ title:"Add a board", onPick: (p)=> addBoardWidget(wx, wy, p) }) }
     ] });
   }
   items.push({ label:"New folder", icon:"folder", action: ()=> openItemModal({mode:"create", type:"folder", parentId}) });
@@ -177,6 +178,7 @@ function showIconContextMenu(x, y, item, parentId){
       openWidgetSettings(w, x, y);
     } });
   }
+  if(parentId === null){ const mv = moveToWebtopMenuItem(selected.has(item.id) ? Array.from(selected) : [item.id]); if(mv) opts.push(mv); }
   opts.push({ label: selected.size>1 ? `Copy ${selected.size} items` : "Copy", icon:"copy", hint:"Ctrl+C", action: copySelection });
   opts.push({ label: selected.size>1 ? `Move ${selected.size} items…` : "Move to…", icon:"move", action: openMovePicker });
   opts.push({ label: selected.size>1 ? `Cut ${selected.size} items` : "Cut", icon:"cut", hint:"Ctrl+X", action: cutSelection });

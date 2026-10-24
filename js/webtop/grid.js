@@ -2,7 +2,7 @@
 
 /* ============ GRID PLACEMENT ============ */
 function childrenOf(parentId){
-  return state.icons.filter(i => i.parentId === parentId && !(parentId === null && i.type === "widget"));
+  return state.icons.filter(i => i.parentId === parentId && !(parentId === null && i.type === "widget") && (parentId !== null || inSpace(i)));
 }
 
 function widgetById(id){ const w = state.icons.find(i=> i.id === id); return w && w.type === "widget" ? w : null; }

@@ -155,6 +155,8 @@ async function loadAndInit(){
     state.wallpaperFit = prefsMap.wallpaperFit || "fill";
     state.myWallpapers = Array.isArray(prefsMap.myWallpapers) ? prefsMap.myWallpapers : [];
     state.clipboardUrlFill = prefsMap.clipboardUrlFill !== false;
+    { const nw = normalizeWebtops(prefsMap.webtops, prefsMap.activeWebtop); state.webtops = nw.webtops; state.activeWebtop = nw.activeWebtop; }
+    state.boardPresets = Array.isArray(prefsMap.boardPresets) ? prefsMap.boardPresets.slice(0, 8) : [];
     state.userNote = normalizeUserNote(prefsMap.userNote);
     state.wallpaperShow = { on:false, minutes:15, source:"all", shuffle:false, last:0, ...(prefsMap.wallpaperShow || {}) };
     state.timeFormat = prefsMap.timeFormat || "auto";
@@ -164,6 +166,7 @@ async function loadAndInit(){
 
   if(!ENGINES[state.searchEngine]) state.searchEngine = "google";
 
+  webtopMigrate();
   ensureBuiltinApps();
   ensureNotesApp();
   ensureCloudApp();

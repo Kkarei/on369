@@ -28,6 +28,7 @@ class WebtopItem{
     this.createdAt = opts.createdAt || Date.now();
     this.modifiedAt = opts.modifiedAt || this.createdAt;
     this.metadata = opts.metadata || {};
+    this.space = opts.space;      // which webtop a top-level item lives on (see webtops.js)
     this.tags = opts.tags || [];
     this.visible = opts.visible !== false;
   }
@@ -68,8 +69,9 @@ class WidgetItem extends WebtopItem{
     this.wx = o.wx ?? 40; this.wy = o.wy ?? 140;
     this.pw = o.pw || 340; this.ph = o.ph || 260;
     this.opacity = o.opacity ?? 0.35; this.blur = o.blur !== false; this.collapsed = !!o.collapsed;
-    this.kind = o.kind === "clock" || o.kind === "calendar" ? o.kind : "group";   // "group" (a Shelf) holds icons; "clock" and "calendar" show their own content
+    this.kind = ["clock", "calendar", "board"].includes(o.kind) ? o.kind : "group";   // "group" (a Shelf) holds icons; "clock" and "calendar" show their own content
     this.calStyle = o.calStyle || "month"; this.weekStartMon = !!o.weekStartMon;
+    this.cols = o.cols || 8; this.tiles = Array.isArray(o.tiles) ? o.tiles : []; this.tstyle = o.tstyle || {};   // boards
     this.clockStyle = o.clockStyle || "poster"; this.accent = o.accent || "";
     this.showSeconds = !!o.showSeconds; this.showDate = o.showDate !== false;
   }

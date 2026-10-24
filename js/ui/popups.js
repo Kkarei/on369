@@ -33,6 +33,14 @@ function showWidgetPop(pop, w, title, x, y){
   const close = document.createElement("span"); close.className = "pop-close"; close.textContent = "\u00d7"; close.title = "Close";
   close.addEventListener("click", closeWidgetPop);
   head.append(t, close); pop.prepend(head);
+  if(state.webtops.length > 1){
+    const lab = document.createElement("label"); lab.append(document.createTextNode("Webtop"));
+    const sel = document.createElement("select");
+    state.webtops.forEach(wt=>{ const o = document.createElement("option"); o.value = wt.id; o.textContent = `${wt.icon} ${wt.name}`; sel.appendChild(o); });
+    sel.value = w.space || state.activeWebtop;
+    sel.addEventListener("change", ()=>{ w.space = sel.value; closeWidgetPop(); save(); render(); });
+    lab.appendChild(sel); pop.appendChild(lab);
+  }
   document.body.appendChild(pop);
   const el = gridLayer.querySelector(`.widget[data-id="${w.id}"]`);
   const pw = pop.offsetWidth, ph = pop.offsetHeight, vw = window.innerWidth, vh = window.innerHeight;

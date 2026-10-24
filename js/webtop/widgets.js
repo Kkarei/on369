@@ -74,13 +74,14 @@ function dragWidgetPart(e, onMove, onDone){
 function renderWidgets(){
   gridLayer.querySelectorAll(".widget").forEach(n=> n.remove());
   clockUpdaters.clear();
-  state.icons.filter(i=> i.type === "widget").forEach(w=>{
+  state.icons.filter(i=> i.type === "widget" && inSpace(i)).forEach(w=>{
     if(w.kind === "clock" || w.kind === "calendar"){ renderClockWidget(w); return; }
+    if(w.kind === "board"){ renderBoardWidget(w); return; }
     const hex = /^#[0-9a-f]{6}$/i.test(w.color) ? w.color : COLORS[0];
     const n = parseInt(hex.slice(1), 16), r = n >> 16 & 255, g = n >> 8 & 255, b = n & 255;
     const el = document.createElement("div");
     el.className = "widget" + (w.collapsed ? " collapsed" : "");
-    el.dataset.id = w.id;
+    el.dataset.id = w.id; el.dataset.kind = "group";
     const narrow = window.innerWidth <= 820, pwEff = narrow ? Math.min(w.pw, window.innerWidth - 16) : w.pw, leftEff = narrow ? Math.max(0, Math.min(w.wx, window.innerWidth - pwEff - 8)) : w.wx;
     el.style.cssText = `left:${leftEff}px;top:${w.wy}px;width:${pwEff}px;height:${w.collapsed ? "auto" : w.ph + "px"};background:rgba(${r},${g},${b},${w.opacity});` + (w.blur ? "backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);" : "");
     if(w.opacity >= 0.6) el.style.color = (0.299*r + 0.587*g + 0.114*b) / 255 > 0.6 ? "#14161c" : "#fff";

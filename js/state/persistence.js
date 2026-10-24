@@ -19,6 +19,9 @@ async function persistPrefs(){
       { key:"wallpaperShow", value: state.wallpaperShow },
       { key:"userNote", value: state.userNote },
       { key:"clipboardUrlFill", value: state.clipboardUrlFill },
+      { key:"webtops", value: state.webtops },
+      { key:"activeWebtop", value: state.activeWebtop },
+      { key:"boardPresets", value: state.boardPresets },
       { key:"timeFormat", value: state.timeFormat },
       { key:"dateFormat", value: state.dateFormat },
       { key:"timeZone", value: state.timeZone }
@@ -79,6 +82,7 @@ async function saveNow(){
 let saveChain = Promise.resolve();
 
 function save(){
+  webtopSync();
   undoCapture();
   saveChain = saveChain.then(saveNow, saveNow).then(cloudSchedule);
   return saveChain;

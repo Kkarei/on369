@@ -23,7 +23,7 @@ function serializeBookmarkTree(parentId, depth){
     .filter(i => i.type === "bookmark" || i.type === "webapp" || i.type === "folder")
     .sort((a,b)=> a.y - b.y || a.x - b.x);
   let html = `${pad}<DL><p>\n`;
-  const widgetFolders = parentId === null ? state.icons.filter(i=> i.type === "widget" && i.kind === "group") : [];
+  const widgetFolders = parentId === null ? state.icons.filter(i=> i.type === "widget" && i.kind === "group" && inSpace(i)) : [];
   widgetFolders.forEach(w=>{
     html += `${pad}    <DT><H3>${escapeHtmlAttr(w.label)}</H3>\n`;
     html += serializeBookmarkTree(w.id, depth+1);
@@ -49,7 +49,7 @@ function exportBookmarks(){
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
 <TITLE>Bookmarks</TITLE>
 <H1>Bookmarks</H1>
-${serializeBookmarkTree(null, 0)}`;
+${serializeAllWebtops()}`;
   const blob = new Blob([doc], { type: "text/html" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

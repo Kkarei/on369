@@ -29,7 +29,7 @@ function doWebSearch(){
 
 function applyAppSearch(raw){
   const query = (raw || "").trim().toLowerCase();
-  const rootItems = state.icons.filter(i=>i.parentId===null);
+  const rootItems = childrenOf(null);
   let anyMatch = !query;
   const selfMatch = (it)=> it.label.toLowerCase().includes(query) || (it.url || "").toLowerCase().includes(query);
   const hasMatch = (it)=> selfMatch(it) || (it.type === "folder" && state.icons.some(c=> c.parentId === it.id && hasMatch(c)));
@@ -53,7 +53,7 @@ function applyAppSearch(raw){
 function clearAppSearch(){
   gridLayer.querySelectorAll(".icon").forEach(el=> el.style.display = "");
   emptyHint.innerHTML = "Empty webtop.<br><b>Right-click</b> to add a bookmark or folder.";
-  emptyHint.style.display = state.icons.filter(i=>i.parentId===null).length === 0 ? "block" : "none";
+  emptyHint.style.display = childrenOf(null).length === 0 ? "block" : "none";
 }
 
 

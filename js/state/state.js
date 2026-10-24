@@ -18,6 +18,7 @@ function seedState(){
     myWallpapers: [],
     userNote: { text:"", position:"top", align:"center", visible:false, updatedAt:0 },
     clipboardUrlFill: true,
+    webtops: [{ id:"main", name:"Webtop", icon:"\u{1F3E0}", wallpaper:null }], activeWebtop: "main", boardPresets: [],
     wallpaperShow: { on:false, minutes:15, source:"all", shuffle:false, last:0 },
     timeFormat: "auto",
     dateFormat: "weekday-short",
@@ -38,7 +39,7 @@ function seedState(){
 // existing read (childrenOf, glyphFor, render, search, drag/drop, etc.)
 // keeps working completely unchanged against this synchronous object.
 // Only persistence became async; reads did not.
-let state = { theme:"verdant", wallpaper:"dots", searchEngine:"google", iconScale:1, builtinAppsSeeded:false, notesAppSeeded:false, cloudAppSeeded:false, defaultThemeMigrated:false, verdantDefaultMigrated:false, chromeLocked:true, showLogo:true, showSearchBar:true, customLogo:null, customWallpaperImage:null, wallpaperFit:"fill", myWallpapers:[], userNote:{ text:"", position:"top", align:"center", visible:false, updatedAt:0 }, clipboardUrlFill:true, wallpaperShow:{ on:false, minutes:15, source:"all", shuffle:false, last:0 }, timeFormat:"auto", dateFormat:"weekday-short", timeZone:null, icons: [] };
+let state = { theme:"verdant", wallpaper:"dots", searchEngine:"google", iconScale:1, builtinAppsSeeded:false, notesAppSeeded:false, cloudAppSeeded:false, defaultThemeMigrated:false, verdantDefaultMigrated:false, chromeLocked:true, showLogo:true, showSearchBar:true, customLogo:null, customWallpaperImage:null, wallpaperFit:"fill", myWallpapers:[], userNote:{ text:"", position:"top", align:"center", visible:false, updatedAt:0 }, clipboardUrlFill:true, webtops:[{ id:"main", name:"Webtop", icon:"\u{1F3E0}", wallpaper:null }], activeWebtop:"main", boardPresets:[], wallpaperShow:{ on:false, minutes:15, source:"all", shuffle:false, last:0 }, timeFormat:"auto", dateFormat:"weekday-short", timeZone:null, icons: [] };
 
 let currentFolderId = null; // null = root webtop
 

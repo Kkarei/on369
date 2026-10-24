@@ -15,6 +15,7 @@ function initMain(){
     applyIconScale();
     applyUserNote();
     updateClipFillToggle();
+    renderWebtopTabs();
     tickClock();
     render();
     if(sess && sess.needsResolve) AppManager.launch("cloud", { title:"Cloud Backup", color: COLORS[1] });
@@ -58,6 +59,7 @@ initStateUndo();
 initUiPopups();
 initUiUserNote();
 initServicesClipboardUrl();
+initWebtopWebtops();
 initUiModals();
 initWindowsWindowManager();
 initUiAppPicker();

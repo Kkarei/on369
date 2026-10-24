@@ -16,7 +16,7 @@ function containerFor(parentId){
 
 function handleWidgetDrop(item, parentId, ev){
   if(parentId !== null && !widgetById(parentId)) return false;
-  const el = document.elementsFromPoint(ev.clientX, ev.clientY).find(n=> n.classList && n.classList.contains("widget") && !n.classList.contains("clock-widget"));
+  const el = document.elementsFromPoint(ev.clientX, ev.clientY).find(n=> n.classList && n.classList.contains("widget") && n.dataset.kind === "group");
   const target = el ? el.dataset.id : null;
   if(target === parentId) return false;
   const ids = selected.has(item.id) && selected.size > 1 ? Array.from(selected) : [item.id];
@@ -67,7 +67,7 @@ async function moveOutOfFolder(item, fromFolderId, ev){
   const ids = selected.has(item.id) && selected.size > 1 ? Array.from(selected) : [item.id];
   const moving = new Set(ids);
   const under = document.elementsFromPoint(ev.clientX, ev.clientY);
-  const widgetEl = under.find(n=> n.classList && n.classList.contains("widget") && !n.classList.contains("clock-widget"));
+  const widgetEl = under.find(n=> n.classList && n.classList.contains("widget") && n.dataset.kind === "group");
   let destId = widgetEl ? widgetEl.dataset.id : null;
   if(!destId){
     const folderEl = under.find(n=> n.classList && n.classList.contains("icon") && n.dataset.id && !moving.has(n.dataset.id)
