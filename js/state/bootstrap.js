@@ -94,9 +94,31 @@ function ensureVerdantDefault(){
 // migrations as before. Everything that depends on state.icons being
 // populated (render, applyAppearance) waits on this promise before running.
 async function loadAndInit(){
+  Store.block("loading");                    // until we know what is already saved, nothing may be written
   await Store.init();
-  const [existingItems, existingPrefs] = await Promise.all([Store.getAllItems(), Store.getAllPrefs()]);
-
+  const readStore = ()=> Promise.all([Store.getAllItems(), Store.getAllPrefs()]);
+  const pause = (ms)=> new Promise(r=> setTimeout(r, ms));
+  let [existingItems, existingPrefs] = await readStore();
+  const shadow = Store.readShadow();
+  // This device has saved data but the read came back empty (a slow or hiccuping database): try again before believing it.
+  for(let i = 0; i < 2 && existingItems.length === 0 && existingPrefs.length === 0 && (Store.hadData() || shadow); i++){
+    await pause(700); Store.reconnect(); [existingItems, existingPrefs] = await readStore();
+  }
+  // An emergency copy newer than the database means some writes never finished: put those changes back.
+  const savedAt = Number((existingPrefs.find(p=> p.key === "savedAt") || {}).value) || 0;
+  const dbItems = existingItems;
+  let recovered = false, itemsToUse = existingItems, prefsToUse = existingPrefs;
+  if(shadow && shadow.savedAt > savedAt){
+    recovered = true; itemsToUse = shadow.items;
+    const fresh = new Set(shadow.prefs.map(p=> p.key));
+    prefsToUse = existingPrefs.filter(p=> !fresh.has(p.key)).concat(shadow.prefs);
+  }
+  if(itemsToUse.length === 0 && prefsToUse.length === 0 && Store.hadData()){
+    // Data used to be saved here, yet nothing can be read now. Starting over silently would replace it
+    // with defaults (and could back those defaults up over your cloud copy), so writing stays off.
+    Store.block("unreadable"); applySeedInto(state); showStorageProblem(); return;
+  }
+  existingItems = itemsToUse; existingPrefs = prefsToUse;
   if(existingItems.length === 0 && existingPrefs.length === 0){
     // Nothing in the new store yet. This data (seeded or migrated) has
     // never actually been written anywhere — persistedSnapshot stays
@@ -135,7 +157,8 @@ async function loadAndInit(){
     // it immediately. Anything ensureBuiltinApps()/ensureDefaultTheme()
     // add on top of this will correctly show up as new in save().
     state.icons = existingItems.map(raw => createItem(raw.type, raw)).filter(Boolean);
-    state.icons.forEach(item=> persistedSnapshot.set(item.id, snapshotBody(item)));
+    const inDatabase = recovered ? dbItems : existingItems;
+    inDatabase.map(raw => createItem(raw.type, raw)).filter(Boolean).forEach(item=> persistedSnapshot.set(item.id, snapshotBody(item)));
     const prefsMap = {};
     existingPrefs.forEach(p=> prefsMap[p.key] = p.value);
     if("theme" in prefsMap) state.theme = prefsMap.theme;
@@ -172,6 +195,21 @@ async function loadAndInit(){
   ensureCloudApp();
   ensureDefaultTheme();
   ensureVerdantDefault();
+  markLoaded(); Store.unblock();
+  if(recovered) showAppBanner("recovered", "Some of your latest changes hadn't reached storage. They were recovered from a safety copy.", [], 9000);
   await save(); // writes whatever save() finds new/changed against persistedSnapshot above
+}
+
+// Shown when saved data exists but cannot be read. Nothing is written until you choose.
+function showStorageProblem(){
+  const actions = [
+    { label:"Try again", keep:true, fn: ()=> location.reload() },
+    { label:"Start fresh", keep:true, fn: async ()=>{
+      if(!(await askConfirm({ title:"Start with an empty webtop?", message:"Your saved data couldn't be read, but it may still be on this device. Starting fresh replaces it.", confirmLabel:"Start fresh", cancelLabel:"Cancel" }))) return;
+      Store.clearMarkers(); Store.unblock(); hideAppBanner("storage"); save();
+    } }
+  ];
+  if(typeof sess !== "undefined" && sess) actions.splice(1, 0, { label:"Restore from cloud\u2026", keep:true, fn: ()=> AppManager.launch("cloud", { title:"Cloud Backup", color: COLORS[1] }) });
+  showAppBanner("storage", "Your saved webtop couldn't be read, so nothing is being saved right now (your data is not deleted).", actions);
 }
 

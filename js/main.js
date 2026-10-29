@@ -1,40 +1,25 @@
 "use strict";
 
 /* ============ INIT ============ */
-const initTimeout = new Promise((_, reject)=>{
-  setTimeout(()=> reject(new Error("on369: initialization timed out")), 6000);
-});
-
 let resizeTimer = null;
 
 /* Runs once at startup (see main.js), in the original order. */
 function initMain(){
-  Promise.race([loadAndInit(), initTimeout]).then(()=>{
-    applyAppearance();
-    applyChromeVisibility();
-    applyIconScale();
-    applyUserNote();
-    updateClipFillToggle();
-    renderWebtopTabs();
-    tickClock();
-    render();
+  let finished = false;
+  const showApp = ()=>{
+    applyAppearance(); applyChromeVisibility(); applyIconScale(); applyUserNote(); updateClipFillToggle(); renderWebtopTabs(); tickClock(); render();
     if(sess && sess.needsResolve) AppManager.launch("cloud", { title:"Cloud Backup", color: COLORS[1] });
-    cloudBaseline();
-    undoReset();
-  }).catch(err=>{
-    console.error("on369: initialization failed or timed out, recovering with in-memory defaults", err);
-    // Last-resort recovery: whatever got this far stays (state.icons may
-    // already be partially populated); anything still missing gets seeded
-    // fresh, so the webtop is usable even if storage never came up.
-    if(state.icons.length === 0) applySeedInto(state);
-    state.icons.forEach(item=> persistedSnapshot.set(item.id, snapshotBody(item)));
-    applyAppearance();
-    applyChromeVisibility();
-    applyIconScale();
-    applyUserNote();
-    tickClock();
-    render();
-    undoReset();
+    cloudBaseline(); undoReset();
+  };
+  // Loading can be slow on a cold start. Say so, and never guess: nothing is written until it really finishes.
+  const slow = setTimeout(()=>{ if(!finished) showAppBanner("loading", "Still loading your data\u2026 your changes will be saved once it finishes."); }, 5000);
+  loadAndInit().then(()=>{
+    finished = true; clearTimeout(slow); hideAppBanner("loading"); showApp();
+  }, (err)=>{
+    finished = true; clearTimeout(slow); hideAppBanner("loading");
+    console.error("on369: loading your data failed. Saving is switched off so nothing is overwritten.", err);
+    Store.block("failed"); if(state.icons.length === 0) applySeedInto(state);
+    showApp(); showStorageProblem();
   });
 
   window.addEventListener("resize", ()=>{
@@ -59,6 +44,7 @@ initStateUndo();
 initUiPopups();
 initUiUserNote();
 initServicesClipboardUrl();
+initStatePersistence();
 initWebtopWebtops();
 initUiModals();
 initWindowsWindowManager();

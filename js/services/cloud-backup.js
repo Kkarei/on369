@@ -64,10 +64,16 @@ async function cloudSnapshot(full){
   return data;
 }
 
-async function cloudPush(){
-  const data = await cloudSnapshot(), now = new Date().toISOString();
+async function cloudPush(force){
+  if(Store.isBlocked()) throw new Error("Your data isn't ready yet, so nothing was backed up.");
+  const data = await cloudSnapshot(), now = new Date().toISOString(), count = data.items.length;
+  // Automatic backups refuse to replace a much bigger cloud copy with a much smaller local one: that is what a lost-data bug looks like.
+  if(!force && sess.lastCount >= 6 && count < sess.lastCount * 0.5){
+    showAppBanner("cloudwarn", `Automatic backup is paused: this device has ${count} items, but your last cloud backup had ${sess.lastCount}. Open Cloud Backup to choose what to do.`, [{ label:"Open Cloud Backup", keep:true, fn: ()=> AppManager.launch("cloud", { title:"Cloud Backup", color: COLORS[1] }) }]);
+    throw new Error("Automatic backup is paused because your data here is much smaller than your last backup.");
+  }
   await sb("/rest/v1/backups?on_conflict=user_id", { method:"POST", token: await cloudToken(), headers:{ Prefer:"resolution=merge-duplicates,return=minimal" }, body:{ user_id: sess.user_id, data, updated_at: now } });
-  sess.synced = true; sess.needsResolve = false; sess.lastSync = now; sess.lastSig = sigOf(data); saveSess();
+  sess.synced = true; sess.needsResolve = false; sess.lastSync = now; sess.lastSig = sigOf(data); sess.lastCount = count; hideAppBanner("cloudwarn"); saveSess();
   return data.imagesSkipped;
 }
 
@@ -88,7 +94,7 @@ function cloudBaseline(){
 }
 
 function cloudSchedule(){
-  if(!sess || !sess.synced || window.__on369Wiping || cloudMode() === "manual") return;
+  if(!sess || !sess.synced || window.__on369Wiping || Store.isBlocked() || cloudMode() === "manual") return;
   clearTimeout(cloudTimer);
   cloudTimer = setTimeout(()=> cloudPush().catch(e=> console.warn("on369: cloud backup failed", e)), 8000);
 }
@@ -96,6 +102,7 @@ function cloudSchedule(){
 // Replaces everything on this device with the given backup, then reloads.
 async function applyBackup(d, beforeReload){
   if(!d || !Array.isArray(d.items) || !Array.isArray(d.prefs)) throw new Error("That backup looks damaged.");
+  Store.unblock(); Store.clearMarkers();      // you asked for this: lift any write block, and drop the old emergency copy so it can't bring back pre-restore data
   window.__on369Wiping = true;
   try{
     const cur = await Store.getAllItems();
@@ -115,13 +122,26 @@ async function cloudDisconnect(clearDevice){
   clearTimeout(cloudTimer); sess = null; saveSess();
   if(tok) sb("/auth/v1/logout", { method:"POST", token: tok }).catch(()=>{});
   if(!clearDevice) return;
-  window.__on369Wiping = true;
+  window.__on369Wiping = true; Store.clearMarkers();
   ["on369.idbFallback.items.v1","on369.idbFallback.prefs.v1","on369.idbFallback.appData.v1"].forEach(k=> localStorage.removeItem(k));
   const go = ()=> location.reload();
   try{ const r = indexedDB.deleteDatabase("on369-db"); r.onsuccess = r.onerror = r.onblocked = go; }catch(_){ go(); }
   setTimeout(go, 1500);
 }
 
+// Earlier copies of your cloud backup, kept by a small database trigger (see README). They are what lets you undo a bad automatic backup.
+async function cloudRestoreEarlier(){
+  let rows;
+  try{ rows = await sb(`/rest/v1/backup_history?select=id,created_at&user_id=eq.${sess.user_id}&order=created_at.desc&limit=8`, { token: await cloudToken() }); }
+  catch(e){ throw new Error("Earlier copies aren't switched on for your Supabase project yet. The README has a one-time step to add them."); }
+  if(!rows || !rows.length) throw new Error("There are no earlier copies yet. One is kept each time a backup replaces an older one.");
+  const id = await askChoice({ title:"Restore an earlier cloud copy", message:"Pick a version. It replaces the webtop on this device.",
+    choices: rows.map(r=>({ label: new Date(r.created_at).toLocaleString(), value: r.id })).concat([{ label:"Cancel", value:null }]) });
+  if(id == null) return;
+  const got = await sb(`/rest/v1/backup_history?select=data&id=eq.${id}`, { token: await cloudToken() });
+  if(!got || !got[0]) throw new Error("That copy couldn't be loaded.");
+  await cloudRestore(got[0].data);
+}
 async function cloudDeleteData(){
   await sb(`/rest/v1/backups?user_id=eq.${sess.user_id}`, { method:"DELETE", token: await cloudToken() });
   sess.synced = false; sess.lastSync = null; saveSess();
@@ -140,7 +160,7 @@ function showCloudCloseDialog(proceed){
   const mk = (label, cls, fn)=>{ const b = document.createElement("button"); b.textContent = label; if(cls) b.className = cls; b.addEventListener("click", fn); return b; };
   const yes = mk("Back up and close", "primary", async ()=>{
     yes.disabled = true; note.textContent = "Backing up\u2026";
-    try{ await cloudPush(); back.remove(); proceed(); }
+    try{ await cloudPush(true); back.remove(); proceed(); }
     catch(e){ yes.disabled = false; note.textContent = e.message || "Backup failed. Try again."; }
   });
   box.append(t, yes, mk("Close without backing up", "", ()=>{ back.remove(); proceed(); }), mk("Cancel", "", ()=> back.remove()), note);
@@ -182,7 +202,7 @@ function renderCloudApp(body){
     }else if(conflict){
       root.appendChild(el("p", "", "A backup from " + when(conflict.updated_at) + " already exists for " + sess.email + ". Which copy do you want to use?"));
       root.appendChild(btn("Restore cloud copy", ()=> cloudRestore(conflict.data), "primary"));
-      root.appendChild(btn("Keep this device's copy", async ()=>{ await cloudPush(); conflict = null; msg = "This device's copy is now your cloud backup."; }));
+      root.appendChild(btn("Keep this device's copy", async ()=>{ await cloudPush(true); conflict = null; msg = "This device's copy is now your cloud backup."; }));
       root.appendChild(el("p", "cloud-note", "Restoring replaces the webtop on this device. Keeping this device's copy overwrites the cloud backup."));
     }else if(sess && sess.needsResolve && !conflict){
       root.appendChild(el("p", "", "Checking for your backup\u2026"));
@@ -192,7 +212,8 @@ function renderCloudApp(body){
       if(cloudAuthError){ msg = cloudAuthError; err = true; cloudAuthError = ""; }
     }else{
       root.append(el("p", "", "Connected as " + sess.email), el("p", "cloud-note", "Last backup: " + when(sess.lastSync) + (cloudMode() === "auto" ? ". Changes back up automatically." : ". Manual mode: press Back up now to save changes.")),
-        btn("Back up now", async ()=>{ const skipped = await cloudPush(); msg = skipped ? "Backed up (large images were left out)." : "Backed up."; }, "primary"),
+        btn("Back up now", async ()=>{ const skipped = await cloudPush(true); msg = skipped ? "Backed up (large images were left out)." : "Backed up."; }, "primary"),
+        btn("Restore an earlier cloud copy\u2026", async ()=>{ await cloudRestoreEarlier(); }),
         btn("Restore cloud copy", async ()=>{
           const row = await cloudFetch();
           if(!row) throw new Error("No cloud backup found.");
@@ -213,7 +234,7 @@ function renderCloudApp(body){
     busy = true; draw();
     cloudFetch().then(async row=>{
       if(row) conflict = row;
-      else { await cloudPush(); msg = "Connected. Your webtop is backed up."; }
+      else { await cloudPush(true); msg = "Connected. Your webtop is backed up."; }
     }).catch(e=>{ msg = e.message || "Could not reach your backup."; err = true; }).finally(()=>{ busy = false; draw(); });
   }else draw();
 }
