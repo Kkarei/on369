@@ -7,6 +7,22 @@
 let justRubberBanded = false;
 
 
+// Which of this container's own icons does the selection box touch?
+// Only icons that are direct children count: an icon inside a shelf, a board tile or a widget is
+// positioned relative to THAT container, so comparing its coordinates with this box would
+// highlight icons that are nowhere near it. Hidden icons (for example filtered out by search) are skipped too.
+function iconsUnderBand(root, band){
+  const hits = [];
+  Array.prototype.forEach.call(root.children, el=>{
+    if(!el.classList || !el.classList.contains("icon")) return;
+    if(!el.offsetWidth && !el.offsetHeight) return;
+    const l = parseFloat(el.style.left), t = parseFloat(el.style.top);
+    const r = { left:l, top:t, right:l + el.offsetWidth, bottom:t + el.offsetHeight };
+    if(!(r.right < band.left || r.left > band.right || r.bottom < band.top || r.top > band.bottom)) hits.push(el.dataset.id);
+  });
+  return hits;
+}
+
 function wireRubberBandSelect(scrollContainer, iconQueryRoot, bandEl, dragNeedsMultiSelect){
   scrollContainer.addEventListener("pointerdown", (e)=>{
     if(e.pointerType !== "mouse") return; // touch scrolls/taps naturally instead
@@ -46,12 +62,7 @@ function wireRubberBandSelect(scrollContainer, iconQueryRoot, bandEl, dragNeedsM
       // accumulation of everything the band has ever touched.
       const bandRect = { left:x, top:y, right:x+w, bottom:y+h };
       const next = new Set(baseSelection);
-      iconQueryRoot.querySelectorAll(".icon").forEach(el=>{
-        const l = parseFloat(el.style.left), t = parseFloat(el.style.top);
-        const r2 = { left:l, top:t, right:l+el.offsetWidth, bottom:t+el.offsetHeight };
-        const hit = !(r2.right < bandRect.left || r2.left > bandRect.right || r2.bottom < bandRect.top || r2.top > bandRect.bottom);
-        if(hit) next.add(el.dataset.id);
-      });
+      iconsUnderBand(iconQueryRoot, bandRect).forEach(id=> next.add(id));
       selected = next;
       updateSelectionClasses();
     }
