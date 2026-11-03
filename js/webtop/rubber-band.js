@@ -23,6 +23,11 @@ function iconsUnderBand(root, band){
   return hits;
 }
 
+// While the selection box is being dragged the browser must not also start its own text/picture
+// selection: that paints blue highlights over labels, links and pictures inside shelves, boards
+// and widgets, which looks exactly like those icons being selected too.
+function clearNativeSelection(){ const sel = window.getSelection && window.getSelection(); if(sel && sel.removeAllRanges) sel.removeAllRanges(); }
+
 function wireRubberBandSelect(scrollContainer, iconQueryRoot, bandEl, dragNeedsMultiSelect){
   scrollContainer.addEventListener("pointerdown", (e)=>{
     if(e.pointerType !== "mouse") return; // touch scrolls/taps naturally instead
@@ -31,6 +36,9 @@ function wireRubberBandSelect(scrollContainer, iconQueryRoot, bandEl, dragNeedsM
     if(e.target.closest(".widget") && !scrollContainer.closest(".widget")) return;   // a widget's own area belongs to the widget
     closeCtxMenu();
     document.getElementById("settingsPop").classList.remove("open");
+    e.preventDefault();                                   // no browser text selection from this press
+    const focused = document.activeElement; if(focused && focused !== document.body && focused.blur) focused.blur();
+    clearNativeSelection(); document.body.classList.add("rubber-selecting");
 
     // Multi-select mode is additive everywhere (matching tap-to-toggle on
     // icons) — a plain click there never wipes the selection, only Shift
@@ -46,7 +54,7 @@ function wireRubberBandSelect(scrollContainer, iconQueryRoot, bandEl, dragNeedsM
 
     function onMove(ev){
       if(ev.pointerId !== pointerId) return;
-      dragged = true;
+      dragged = true; clearNativeSelection();
       bandEl.style.display = "block";
       const r = scrollContainer.getBoundingClientRect();
       const cx = ev.clientX - r.left + scrollContainer.scrollLeft;
@@ -70,6 +78,7 @@ function wireRubberBandSelect(scrollContainer, iconQueryRoot, bandEl, dragNeedsM
       if(ev.pointerId !== pointerId) return;
       document.removeEventListener("pointermove", onMove);
       document.removeEventListener("pointerup", onUp);
+      document.body.classList.remove("rubber-selecting"); clearNativeSelection();
       bandEl.style.display = "none";
       if(dragged){
         justRubberBanded = true;
