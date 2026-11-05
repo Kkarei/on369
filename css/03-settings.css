@@ -173,9 +173,24 @@
   }
   .fit-select-chevron svg{ width:13px; height:13px; }
 
-  .btn-reset{
+  .btn-action{
     width:100%;
     margin-top:16px;
+    font: inherit; font-size:12.5px; font-weight:700;
+    padding: 9px 10px;
+    border-radius: 9px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    cursor: pointer;
+    text-align:center;
+    transition: background .12s ease;
+  }
+  .btn-action:hover{ background: var(--surface-hover); }
+
+  .btn-reset{
+    width:100%;
+    margin-top:10px;
     font: inherit; font-size:12.5px; font-weight:700;
     padding: 9px 10px;
     border-radius: 9px;

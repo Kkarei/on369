@@ -357,3 +357,79 @@
   .gs-feature-icon svg{ width: 19px; height: 19px; }
   .gs-feature-title{ font-size: 12.5px; font-weight: 700; margin: 0 0 2px; }
   .gs-feature-desc{ font-size: 11.5px; line-height: 1.4; color: var(--text-secondary); margin: 0; }
+
+/* ---------- GETTING STARTED APP: added-feature steps ---------- */
+  .gs-add-demo{ display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap; }
+  .gs-fab-demo{
+    width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--accent); color: #fff; box-shadow: var(--shadow-soft);
+    cursor: pointer; transition: transform .15s cubic-bezier(.2,.8,.3,1), background .15s ease;
+  }
+  .gs-fab-demo svg{ width: 22px; height: 22px; }
+  .gs-fab-demo:hover, .gs-fab-demo:focus-visible{ background: var(--accent-strong); transform: scale(1.06); }
+
+  .gs-shelf-demo{
+    width: 112px; min-height: 90px; border-radius: 12px; border: 1.5px solid;
+    display: flex; flex-direction: column; padding: 8px; gap: 6px; flex-shrink: 0;
+    transition: outline .15s ease, background .15s ease;
+  }
+  .gs-shelf-demo-head{ font-size: 11px; font-weight: 700; }
+  .gs-shelf-demo-body{ flex: 1; display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; }
+  .gs-shelf-item{ width: 30px; height: 30px; }
+  .gs-shelf-item svg{ width: 16px; height: 16px; }
+
+  .gs-board-row{ display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .gs-board-card{
+    width: 92px; padding: 8px; border-radius: 12px; cursor: pointer;
+    background: var(--surface); border: 1.5px solid var(--border); text-align: center;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .gs-board-card:hover, .gs-board-card:focus-visible{ background: var(--surface-hover); }
+  .gs-board-card.active{ border-color: var(--accent); background: var(--surface-selected); }
+  .gs-board-preview{ display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; align-content: center; height: 42px; margin-bottom: 6px; }
+  .gs-board-tile{ border-radius: 3px; width: 16px; }
+  .gs-board-tile.tall{ height: 30px; }
+  .gs-board-tile.short{ height: 13px; }
+  .gs-board-tile.wide{ width: 36px; height: 13px; }
+  .gs-board-name{ font-size: 10.5px; font-weight: 700; }
+
+  .gs-webtop-tabs{ display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+  .gs-webtop-tab{
+    padding: 7px 12px; border-radius: 9px 9px 0 0; font-size: 12px; font-weight: 600;
+    background: var(--surface); border: 1px solid var(--border); border-bottom: none;
+    cursor: pointer; color: var(--text-secondary); transition: background .15s ease, color .15s ease;
+  }
+  .gs-webtop-tab:hover, .gs-webtop-tab:focus-visible{ background: var(--surface-hover); }
+  .gs-webtop-tab.active{ background: var(--bg-0); color: var(--text-primary); }
+  .gs-webtop-tab.add{ width: 30px; text-align: center; font-weight: 800; color: var(--accent); }
+  .gs-webtop-tab.new{ animation: gs-tab-in .2s cubic-bezier(.2,.8,.3,1); }
+  @keyframes gs-tab-in{ from{ transform: scale(.6); opacity: 0; } to{ transform: scale(1); opacity: 1; } }
+
+  .gs-wp-caption{ font-size: 11px; color: var(--text-secondary); text-align: center; margin: 2px 0 0; min-height: 15px; }
+  .gs-wp-badge{
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 800; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.4);
+  }
+  .gs-wp-swatch{ position: relative; }
+
+  .gs-chrome-demo{ width: 100%; max-width: 300px; display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
+  .gs-chrome-bar{
+    display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px;
+    background: var(--surface); border: 1px solid var(--border);
+  }
+  .gs-chrome-logo{ font-weight: 800; font-size: 11px; color: var(--text-primary); }
+  .gs-chrome-search{ flex: 1; height: 16px; border-radius: 8px; background: var(--border); }
+  .gs-toggle-row{ display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); cursor: pointer; }
+
+  .gs-note-demo{ width: 100%; max-width: 320px; display: flex; flex-direction: column; gap: 8px; }
+  .gs-note-preview{
+    padding: 8px 12px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border);
+    font-size: 12.5px; font-weight: 600; text-align: center; color: var(--text-primary);
+  }
+  .gs-note-preview.muted{ color: var(--text-tertiary); font-weight: 500; font-style: italic; }
+  .gs-note-input{
+    font: inherit; font-size: 12.5px; padding: 9px 12px; border-radius: 9px;
+    background: var(--bg-0); border: 1px solid var(--border); color: var(--text-primary);
+  }
+  .gs-note-input:focus{ outline: none; border-color: var(--accent); }
