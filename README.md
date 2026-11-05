@@ -1,6 +1,6 @@
 # on369
 
-A browser-based personal webtop: bookmarks, web apps, native apps (Calculator, Todo, Notes), widgets, search, themes, file backup and Supabase cloud backup.
+A browser-based personal webtop: bookmarks, web apps, native apps (Calculator, Todo, Notes), widgets, search, themes, file backup and Supabase cloud backup. A hands-on Getting Started app walks first-time visitors through it and doubles as a features overview.
 
 ## Run it
 Serve this folder over http (for example `npx serve .` or `python3 -m http.server`) and open `index.html`.
@@ -22,7 +22,7 @@ js/                 loaded in the order listed in index.html
   webtop/          webtops (workspaces + tabs), boards (tile dashboards), grid, render, widgets (Shelf to group icons, Clock in 6 styles, Calendar in 2 styles), selection, clipboard, drag/click, delete, menus
   windows/          floating window manager
   services/         bookmark import/export, web-app enrichment, cloud backup, file backup
-  apps/             calculator, notes, todo
+  apps/             calculator, notes, todo, getting-started (first-run guided tour + features tab)
   main.js           boot: runs each file's init function in order
 ```
 Each file keeps its declarations at the top level and puts anything that must run at startup inside one `initXxx()` function. `main.js` calls them in the original order, so adding a file means: add its `<script>` tag before `main.js`, and add its `init` call to the boot list if it has one.

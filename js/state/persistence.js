@@ -12,6 +12,8 @@ function prefEntries(){
     { key:"builtinAppsSeeded", value: state.builtinAppsSeeded },
     { key:"notesAppSeeded", value: state.notesAppSeeded },
     { key:"cloudAppSeeded", value: state.cloudAppSeeded },
+    { key:"gettingStartedAppSeeded", value: state.gettingStartedAppSeeded },
+    { key:"gettingStartedDismissed", value: state.gettingStartedDismissed },
     { key:"defaultThemeMigrated", value: state.defaultThemeMigrated },
     { key:"verdantDefaultMigrated", value: state.verdantDefaultMigrated },
     { key:"chromeLocked", value: state.chromeLocked },

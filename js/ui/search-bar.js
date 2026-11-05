@@ -43,8 +43,7 @@ function applyAppSearch(raw){
     emptyHint.innerHTML = `No matches for "<b>${escapeHtml(raw.trim())}</b>"`;
     emptyHint.style.display = "block";
   }else if(!query){
-    emptyHint.innerHTML = "Empty webtop.<br><b>Right-click</b> to add a bookmark or folder.";
-    emptyHint.style.display = rootItems.length === 0 ? "block" : "none";
+    emptyHint.style.display = "none";
   }else{
     emptyHint.style.display = "none";
   }
@@ -52,8 +51,7 @@ function applyAppSearch(raw){
 
 function clearAppSearch(){
   gridLayer.querySelectorAll(".icon").forEach(el=> el.style.display = "");
-  emptyHint.innerHTML = "Empty webtop.<br><b>Right-click</b> to add a bookmark or folder.";
-  emptyHint.style.display = childrenOf(null).length === 0 ? "block" : "none";
+  emptyHint.style.display = "none";
 }
 
 

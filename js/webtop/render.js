@@ -32,7 +32,9 @@ function renderInto(container, parentId, opts){
     const maxY = items.reduce((m,i)=> Math.max(m,i.y), -1);
     const neededHeight = offset.top + (maxY+1)*cell.h + 100;
     gridLayer.style.minHeight = Math.max(neededHeight, window.innerHeight) + "px";
-    emptyHint.style.display = items.length === 0 ? "block" : "none";
+    // No "empty webtop" message any more — an empty root just shows the
+    // wallpaper. emptyHint is still used for "no search matches" below.
+    emptyHint.style.display = "none";
     updateStatusBar();
     if(typeof applyAppSearch === "function" && searchMode === "app" && searchInput && searchInput.value){
       applyAppSearch(searchInput.value);

@@ -23,6 +23,11 @@ function notesSVG(color){
 }
 
 
+function compassSVG(color){
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="m14.8 9.2-1.6 4.8-4.8 1.6 1.6-4.8 4.8-1.6Z" fill="${color}" stroke="none" opacity="0.92"></path><circle cx="12" cy="12" r="1" fill="${color}" stroke="none"></circle></svg>`;
+}
+
+
 function faviconDomain(url){
   try{ return new URL(url).hostname; }
   catch(e){ return null; }

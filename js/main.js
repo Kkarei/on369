@@ -9,6 +9,7 @@ function initMain(){
   const showApp = ()=>{
     applyAppearance(); applyChromeVisibility(); applyIconScale(); applyUserNote(); updateClipFillToggle(); renderWebtopTabs(); tickClock(); render();
     if(sess && sess.needsResolve) AppManager.launch("cloud", { title:"Cloud Backup", color: COLORS[1] });
+    else if(!state.gettingStartedDismissed) AppManager.launch("getting-started", { title:"Getting Started", color: COLORS[1] });
     cloudBaseline(); undoReset();
   };
   // Loading can be slow on a cold start. Say so, and never guess: nothing is written until it really finishes.
@@ -53,6 +54,7 @@ initServicesBookmarkImport();
 initAppsCalculator();
 initAppsNotes();
 initAppsTodo();
+initAppsGettingStarted();
 initUiSearchBar();
 initUiTouchLongPress();
 initServicesCloudBackup();

@@ -26,7 +26,7 @@ function seedState(){
     icons: [
       { id: uid(), type:"app", appId:"calculator", label:"Calculator", color: COLORS[5], x:0, y:0, parentId:null },
       { id: uid(), type:"app", appId:"todo", label:"Todo", color: COLORS[2], x:1, y:0, parentId:null },
-      { id: uid(), type:"folder", label:"Getting Started", color: COLORS[1], x:2, y:0, parentId:null },
+      { id: uid(), type:"app", appId:"getting-started", label:"Getting Started", color: COLORS[1], x:2, y:0, parentId:null },
       { id: uid(), type:"webapp", label:"Pencraft Notes", url:"https://pencraft.on369.top", color: COLORS[4], x:3, y:0, parentId:null },
       { id: uid(), type:"webapp", label:"Beartly UI Builder", url:"https://beartly.on369.top", color: COLORS[0], x:0, y:1, parentId:null },
       { id: uid(), type:"folder", label:"Read Later", color: COLORS[3], x:1, y:1, parentId:null }
@@ -39,7 +39,7 @@ function seedState(){
 // existing read (childrenOf, glyphFor, render, search, drag/drop, etc.)
 // keeps working completely unchanged against this synchronous object.
 // Only persistence became async; reads did not.
-let state = { theme:"verdant", wallpaper:"dots", searchEngine:"google", iconScale:1, builtinAppsSeeded:false, notesAppSeeded:false, cloudAppSeeded:false, defaultThemeMigrated:false, verdantDefaultMigrated:false, chromeLocked:true, showLogo:true, showSearchBar:true, customLogo:null, customWallpaperImage:null, wallpaperFit:"fill", myWallpapers:[], userNote:{ text:"", position:"top", align:"center", visible:false, updatedAt:0 }, clipboardUrlFill:true, webtops:[{ id:"main", name:"Webtop", icon:"\u{1F3E0}", wallpaper:null }], activeWebtop:"main", boardPresets:[], wallpaperShow:{ on:false, minutes:15, source:"all", shuffle:false, last:0 }, timeFormat:"auto", dateFormat:"weekday-short", timeZone:null, icons: [] };
+let state = { theme:"verdant", wallpaper:"dots", searchEngine:"google", iconScale:1, builtinAppsSeeded:false, notesAppSeeded:false, cloudAppSeeded:false, gettingStartedAppSeeded:false, gettingStartedDismissed:false, defaultThemeMigrated:false, verdantDefaultMigrated:false, chromeLocked:true, showLogo:true, showSearchBar:true, customLogo:null, customWallpaperImage:null, wallpaperFit:"fill", myWallpapers:[], userNote:{ text:"", position:"top", align:"center", visible:false, updatedAt:0 }, clipboardUrlFill:true, webtops:[{ id:"main", name:"Webtop", icon:"\u{1F3E0}", wallpaper:null }], activeWebtop:"main", boardPresets:[], wallpaperShow:{ on:false, minutes:15, source:"all", shuffle:false, last:0 }, timeFormat:"auto", dateFormat:"weekday-short", timeZone:null, icons: [] };
 
 let currentFolderId = null; // null = root webtop
 

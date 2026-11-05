@@ -60,6 +60,29 @@ function ensureNotesApp(){
 }
 
 
+// One-time: the original "Getting Started" folder becomes an interactive
+// guide app instead (new and existing users). An untouched (empty) default
+// folder is swapped for the app in place, at the same spot; a folder the
+// user has already put something into is left exactly alone and the guide
+// app is added alongside it. Same "add once, respect deletion after that"
+// rule as ensureNotesApp() — safe to call even on a fresh seed, since the
+// app is already in seedState()'s icons and this just becomes a no-op then.
+function ensureGettingStartedApp(){
+  if(state.gettingStartedAppSeeded) return;
+  if(!state.icons.some(i=> i.type === "app" && i.appId === "getting-started")){
+    const oldFolder = state.icons.find(i=> i.type === "folder" && i.parentId === null && i.label.trim() === "Getting Started");
+    if(oldFolder && childrenOf(oldFolder.id).length === 0){
+      state.icons = state.icons.filter(i=> i.id !== oldFolder.id);
+      state.icons.push(createItem("app", { appId:"getting-started", label:"Getting Started", color: oldFolder.color, x: oldFolder.x, y: oldFolder.y, parentId:null }));
+    }else{
+      const slot = nextFreeSlot(null);
+      state.icons.push(createItem("app", { appId:"getting-started", label:"Getting Started", color: COLORS[1], x:slot.x, y:slot.y, parentId:null }));
+    }
+  }
+  state.gettingStartedAppSeeded = true;
+}
+
+
 function ensureCloudApp(){
   // Cloud Backup lives in the top bar now; drop any webtop icon left from earlier versions.
   state.icons = state.icons.filter(i=> !(i.type === "app" && i.appId === "cloud"));
@@ -168,6 +191,8 @@ async function loadAndInit(){
     state.builtinAppsSeeded = !!prefsMap.builtinAppsSeeded;
     state.notesAppSeeded = !!prefsMap.notesAppSeeded;
     state.cloudAppSeeded = !!prefsMap.cloudAppSeeded;
+    state.gettingStartedAppSeeded = !!prefsMap.gettingStartedAppSeeded;
+    state.gettingStartedDismissed = !!prefsMap.gettingStartedDismissed;
     state.defaultThemeMigrated = !!prefsMap.defaultThemeMigrated;
     state.verdantDefaultMigrated = !!prefsMap.verdantDefaultMigrated;
     state.chromeLocked = "chromeLocked" in prefsMap ? !!prefsMap.chromeLocked : true;
@@ -192,6 +217,7 @@ async function loadAndInit(){
   webtopMigrate();
   ensureBuiltinApps();
   ensureNotesApp();
+  ensureGettingStartedApp();
   ensureCloudApp();
   ensureDefaultTheme();
   ensureVerdantDefault();
