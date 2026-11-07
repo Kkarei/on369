@@ -61,6 +61,12 @@ function tileDefaults(type){
   return {};
 }
 const BL = (label, url)=> ({ label, url });
+// `apps`, where present, is a list of js/data/app-catalog.js ids. Beyond the
+// board's own tiles, choosing this preset while creating a webtop also adds
+// one real webapp icon per id to the new webtop's grid (see openWebtopDialog
+// in webtops.js) — the board's "links" tiles stay as in-board shortcuts;
+// `apps` is what actually populates the webtop itself, which is the gap
+// these presets used to have (widgets only, nothing to actually launch).
 const BOARD_PRESETS = [
   { id:"dashboard", name:"Dashboard", desc:"Everything at a glance", cols:8, tiles:[
     ["todo",0,0,2,3,{ title:"To-do", items:[{ t:"Plan the week", d:false }, { t:"Reply to emails", d:false }, { t:"Go for a walk", d:true }] }],
@@ -72,19 +78,36 @@ const BOARD_PRESETS = [
     ["links",2,4,4,1,{ list:[BL("Maps","https://maps.google.com"), BL("Photos","https://photos.google.com"), BL("Docs","https://docs.google.com"), BL("Sheets","https://sheets.google.com"), BL("Calendar","https://calendar.google.com")] }],
     ["note",2,5,4,1,{ title:"Reminder", text:"" }],
     ["forecast",6,0,2,6,{}]
-  ] },
+  ], apps:["google-docs","google-drive","gmail","notion","chatgpt"] },
   { id:"focus", name:"Focus", desc:"A big clock, tasks and a note", cols:4, tiles:[
     ["clock",0,0,2,3,{ style:"poster", showDate:true }], ["todo",2,0,2,2,{ title:"Today" }], ["note",2,2,2,1,{ title:"Focus on" }], ["search",0,3,4,1,{}]
   ] },
   { id:"student", name:"Student", desc:"Tasks, calendar, notes and study links", cols:6, tiles:[
     ["todo",0,0,2,3,{ title:"Assignments" }], ["calendar",2,0,2,3,{}], ["clock",4,0,2,1,{ label:"Local" }], ["note",4,1,2,2,{ title:"Study notes" }],
     ["links",0,3,4,1,{ list:[BL("Docs","https://docs.google.com"), BL("Drive","https://drive.google.com"), BL("Scholar","https://scholar.google.com"), BL("Wikipedia","https://wikipedia.org")] }], ["search",4,3,2,1,{}]
-  ] },
+  ], apps:["khan-academy","google-scholar","quizlet","geogebra","notebooklm"] },
   { id:"start", name:"Start page", desc:"Search, shortcuts and the week ahead", cols:6, tiles:[
     ["search",0,0,6,1,{}],
     ["links",0,1,6,1,{ list:[BL("Gmail","https://mail.google.com"), BL("YouTube","https://youtube.com"), BL("Maps","https://maps.google.com"), BL("News","https://news.google.com"), BL("GitHub","https://github.com"), BL("Wikipedia","https://wikipedia.org")] }],
     ["clock",0,2,2,2,{ style:"rings", label:"" }], ["calendar",2,2,4,1,{ style:"week" }], ["note",2,3,4,1,{ title:"Today" }]
-  ] },
+  ], apps:["gmail","youtube","google-maps","github","wikipedia"] },
+  { id:"work", name:"Work", desc:"Tasks, calendar and your office apps", cols:6, tiles:[
+    ["todo",0,0,2,3,{ title:"Tasks" }], ["calendar",2,0,2,3,{}], ["clock",4,0,2,1,{ label:"Local" }], ["note",4,1,2,2,{ title:"Focus on" }],
+    ["links",0,3,4,1,{ list:[BL("Gmail","https://mail.google.com"), BL("Drive","https://drive.google.com"), BL("Docs","https://docs.google.com"), BL("Meet","https://meet.google.com")] }], ["search",4,3,2,1,{}]
+  ], apps:["google-docs","google-sheets","gmail","google-drive","canva","trello","chatgpt"] },
+  { id:"developer", name:"Developer", desc:"Code, docs and a scratchpad", cols:6, tiles:[
+    ["search",0,0,6,1,{}],
+    ["links",0,1,6,1,{ list:[BL("GitHub","https://github.com"), BL("MDN","https://developer.mozilla.org"), BL("CodePen","https://codepen.io"), BL("StackBlitz","https://stackblitz.com"), BL("Replit","https://replit.com")] }],
+    ["clock",0,2,2,2,{ style:"rings", label:"" }], ["todo",2,2,2,2,{ title:"Tasks" }], ["note",4,2,2,2,{ title:"Scratchpad" }]
+  ], apps:["github","codepen","stackblitz","replit","mdn","chatgpt","excalidraw"] },
+  { id:"gaming", name:"Gaming", desc:"A clock, notes and the games you play", cols:4, tiles:[
+    ["clock",0,0,2,2,{ style:"classic", label:"Local" }], ["note",2,0,2,2,{ title:"Game night" }],
+    ["links",0,2,4,1,{ list:[BL("Discord","https://discord.com/app"), BL("Twitch","https://www.twitch.tv"), BL("YouTube","https://www.youtube.com")] }]
+  ], apps:["poki","crazygames","itchio","discord","twitch","youtube","lichess"] },
+  { id:"creative", name:"Creative", desc:"Design tools, ideas and projects", cols:6, tiles:[
+    ["clock",0,0,2,2,{ style:"glass", label:"Local" }], ["note",2,0,2,2,{ title:"Ideas" }], ["todo",4,0,2,2,{ title:"Projects" }],
+    ["links",0,2,6,1,{ list:[BL("Canva","https://www.canva.com"), BL("Photopea","https://www.photopea.com"), BL("Figma","https://www.figma.com"), BL("Unsplash","https://unsplash.com")] }]
+  ], apps:["canva","photopea","figma","pixlr","unsplash","youtube"] },
   { id:"world", name:"World clocks", desc:"Three cities, side by side", cols:6, tiles:[
     ["clock",0,0,2,2,{ style:"classic", label:"Local" }], ["clock",2,0,2,2,{ style:"classic", tz:"Europe/London", label:"London" }], ["clock",4,0,2,2,{ style:"classic", tz:"Asia/Tokyo", label:"Tokyo" }],
     ["note",0,2,6,1,{ title:"Meeting planner" }]

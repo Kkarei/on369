@@ -120,6 +120,27 @@ function openWebtopMenu(id, x, y){
 }
 
 // "New webtop" / "Edit webtop" dialog: a name, an icon, and (for new ones) what to start with.
+// Materializes a board preset's `apps` (ids from js/data/app-catalog.js) as
+// real webapp icons on the new webtop's grid. The board's own "links" tiles
+// stay as shortcuts inside that widget; this is what actually puts icons on
+// the webtop itself — the gap presets used to have (widgets only, nothing to
+// launch). Unknown ids are skipped by catalogApps(), never thrown.
+function addPresetApps(preset){
+  if(!Array.isArray(preset.apps) || !preset.apps.length) return;
+  if(typeof catalogApps !== "function") return;
+  catalogApps(preset.apps).forEach(app=>{
+    const slot = nextFreeSlot(null);
+    const item = createItem("webapp", {
+      label: app.label, url: app.url, color: COLORS[state.icons.length % COLORS.length],
+      x: slot.x, y: slot.y, parentId: null, space: state.activeWebtop
+    });
+    if(!item) return;
+    state.icons.push(item);
+    if(typeof tryEnrichWebApp === "function") tryEnrichWebApp(item);
+  });
+  save(); render();
+}
+
 function openWebtopDialog(editId){
   const editing = editId ? state.webtops.find(w=> w.id === editId) : null;
   const back = document.createElement("div"); back.className = "cloud-modal-back";
@@ -147,7 +168,7 @@ function openWebtopDialog(editId){
     if(editing){ editing.name = nm || editing.name; editing.icon = icon; renderWebtopTabs(); save(); done(); return; }
     const id = addWebtop(nm, icon); const preset = start.value ? allBoardPresets().find(p=> p.id === start.value) : null;
     done(); switchWebtop(id);
-    if(preset) addBoardWidget(60, 130, preset);
+    if(preset){ addBoardWidget(60, 130, preset); addPresetApps(preset); }
   };
   ok.addEventListener("click", submit);
   name.addEventListener("keydown", (e)=>{ if(e.key === "Enter") submit(); else if(e.key === "Escape") done(); });
