@@ -130,3 +130,26 @@
   cursor:pointer; text-decoration:underline; padding:0;
 }
 .wap-link:hover{ color: var(--text-primary); }
+
+/* ---------- WEB APP PICKER: grid/list view toggle ---------- */
+.wap-heading-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.wap-heading{ flex:1; min-width:0; }
+.wap-view-toggle{ display:flex; gap:2px; background:var(--bg-0); border:1px solid var(--border); border-radius:8px; padding:2px; flex-shrink:0; }
+.wap-view-btn{
+  display:flex; align-items:center; justify-content:center; width:26px; height:24px;
+  border:none; background:transparent; border-radius:6px; color:var(--text-tertiary); cursor:pointer;
+}
+.wap-view-btn svg{ width:15px; height:15px; }
+.wap-view-btn:hover{ color:var(--text-primary); }
+.wap-view-btn.active{ background:var(--accent); color:#fff; }
+
+.wap-list{ display:flex; flex-direction:column; gap:4px; max-height:300px; overflow-y:auto; padding-right:2px; }
+.wap-row{
+  display:flex; align-items:center; gap:10px; width:100%; padding:7px 10px; border-radius:9px;
+  background:var(--bg-0); border:1px solid var(--border-strong); color:var(--text-primary);
+  font:inherit; font-size:12.5px; font-weight:600; cursor:pointer; text-align:left;
+}
+.wap-row:hover{ border-color:var(--accent); background:var(--surface-hover); }
+.wap-row-label{ flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.wap-icon-sm .icon-glyph{ width:28px; height:28px; border-radius:8px; flex-shrink:0; }
+.wap-row .wap-added{ margin-left:auto; flex-shrink:0; }
