@@ -109,7 +109,7 @@ function initUiModals(){
     const items = [
       { label:"Bookmark", icon:"bookmark", action: ()=> openItemModal({ mode:"create", type:"bookmark", parentId }) },
       { label:"Folder", icon:"folder", action: ()=> openItemModal({ mode:"create", type:"folder", parentId }) },
-      { label:"Web app (from a website)", icon:"globe", action: ()=> openItemModal({ mode:"create", type:"webapp", parentId }) },
+      { label:"Web app", icon:"globe", action: ()=> openWebAppPicker({ parentId }) },
       { label:"Native app\u2026", icon:"grid", hint:"Calculator, Todo\u2026", action: ()=> openAppPicker(parentId) }
     ];
     if(onWebtop) items.push({ label:"Widget", icon:"grid", submenu: [
