@@ -22,6 +22,11 @@ let wapViewMode = "grid";
 const WAP_GRID_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.5"></rect><rect x="13" y="3" width="8" height="8" rx="1.5"></rect><rect x="3" y="13" width="8" height="8" rx="1.5"></rect><rect x="13" y="13" width="8" height="8" rx="1.5"></rect></svg>`;
 const WAP_LIST_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="18" x2="20" y2="18"></line></svg>`;
 
+// Display labels for APP_CATALOG's `pricing` field, shown as a small badge
+// on every card/row (not hidden behind hover, since whether something costs
+// money is worth knowing before you click, not just supplementary trivia).
+const WAP_PRICING_LABELS = { free:"Free", freemium:"Freemium", paid:"Paid", unknown:"Pricing varies" };
+
 function openWebAppPicker(opts){
   opts = opts || {};
   const parentId = opts.parentId != null ? opts.parentId : null;
@@ -33,11 +38,12 @@ function openWebAppPicker(opts){
   box.setAttribute("role", "dialog");
   box.setAttribute("aria-modal", "true");
 
-  const close = ()=>{ document.removeEventListener("keydown", onKey, true); back.remove(); };
+  const close = ()=>{ document.removeEventListener("keydown", onKey, true); tip.remove(); back.remove(); };
   const onKey = (e)=>{ if(e.key === "Escape"){ e.stopPropagation(); close(); } };
 
   box.appendChild(wapEl("div", "confirm-title", "Add a web app"));
   box.appendChild(wapEl("p", "cloud-note", "Pick a known app below, or add any other site as a bookmark."));
+  box.appendChild(wapEl("p", "cloud-note wap-disclaimer", "These are third-party services, not part of on369 — opening one may ask you to sign in with your own account. Pricing (shown on each app) varies: Free, Freemium or Paid."));
 
   const searchInput = document.createElement("input");
   searchInput.type = "text";
@@ -76,6 +82,59 @@ function openWebAppPicker(opts){
   const statusEl = wapEl("div", "wap-status");
   box.appendChild(statusEl);
 
+  // One shared tooltip, repositioned per card/row — appended to <body>
+  // (not inside the scrolling grid) so it's never clipped by the grid's
+  // own overflow, and removed when the picker closes.
+  const tip = wapEl("div", "wap-tooltip");
+  document.body.appendChild(tip);
+
+  function positionTooltip(el){
+    const r = el.getBoundingClientRect();
+    const tw = tip.offsetWidth, th = tip.offsetHeight;
+    const left = Math.max(8, Math.min(window.innerWidth - tw - 8, r.left + (r.width - tw) / 2));
+    const above = r.top - th - 10 > 0;
+    tip.style.left = left + "px";
+    tip.style.top = (above ? r.top - th - 8 : r.bottom + 8) + "px";
+  }
+
+  function showTooltip(el, app){
+    tip.innerHTML = "";
+    // Category only when browsing the flat "All Apps" list (or search
+    // results) — in a single-category view the category is already the
+    // page you're looking at, so repeating it would be noise.
+    if((activeCat === "all" || query.trim()) && app.categories && app.categories.length){
+      tip.appendChild(wapEl("div", "wap-tip-cat", CATEGORY_LABELS[app.categories[0]] || ""));
+    }
+    tip.appendChild(wapEl("div", "wap-tip-desc", app.desc || ""));
+    tip.classList.add("open");
+    positionTooltip(el);
+  }
+
+  function hideTooltip(){ tip.classList.remove("open"); }
+
+  // Hover (desktop) or a long-press (touch) shows the tooltip; a long
+  // press also suppresses the click that would otherwise follow it, so
+  // touch users can read the description without accidentally adding
+  // the app. el.__wapSuppressClick is checked by cardFor/rowFor's own
+  // click handler — plain property, not another listener, so there's no
+  // ordering question about which handler runs first.
+  function wireTooltip(el, app){
+    let pressTimer = null;
+    const show = ()=> showTooltip(el, app);
+    el.addEventListener("mouseenter", show);
+    el.addEventListener("mouseleave", hideTooltip);
+    el.addEventListener("focus", show);
+    el.addEventListener("blur", hideTooltip);
+    el.addEventListener("pointerdown", (e)=>{
+      if(e.pointerType === "mouse") return;
+      el.__wapSuppressClick = false;
+      pressTimer = setTimeout(()=>{ el.__wapSuppressClick = true; show(); }, 500);
+    });
+    el.addEventListener("pointermove", ()=> clearTimeout(pressTimer));
+    el.addEventListener("pointerup", ()=>{ clearTimeout(pressTimer); if(el.__wapSuppressClick) hideTooltip(); });
+    el.addEventListener("pointercancel", ()=>{ clearTimeout(pressTimer); hideTooltip(); });
+  }
+
   function alreadyHas(url){
     return state.icons.some(i=> i.type === "webapp" && i.url === url && i.parentId === parentId &&
       (parentId !== null || i.space === state.activeWebtop));
@@ -107,6 +166,11 @@ function openWebAppPicker(opts){
       : pictorialGlyphHTML(COLORS[i % COLORS.length], []);
   }
 
+  function priceBadge(app){
+    const label = WAP_PRICING_LABELS[app.pricing] || WAP_PRICING_LABELS.unknown;
+    return wapEl("small", "wap-price wap-price-" + (app.pricing || "unknown"), label);
+  }
+
   function cardFor(app, i){
     const card = wapEl("button", "preset-card wap-card");
     card.type = "button";
@@ -114,8 +178,13 @@ function openWebAppPicker(opts){
     iconWrap.innerHTML = iconHTML(app, i);
     card.appendChild(iconWrap);
     card.appendChild(wapEl("b", "", app.label));
+    card.appendChild(priceBadge(app));
     if(alreadyHas(app.url)) card.appendChild(wapEl("small", "wap-added", "Already added"));
-    card.addEventListener("click", ()=> pick(app));
+    card.addEventListener("click", ()=>{
+      if(card.__wapSuppressClick){ card.__wapSuppressClick = false; return; }
+      pick(app);
+    });
+    wireTooltip(card, app);
     return card;
   }
 
@@ -126,8 +195,13 @@ function openWebAppPicker(opts){
     iconWrap.innerHTML = iconHTML(app, i);
     row.appendChild(iconWrap);
     row.appendChild(wapEl("span", "wap-row-label", app.label));
+    row.appendChild(priceBadge(app));
     if(alreadyHas(app.url)) row.appendChild(wapEl("small", "wap-added", "Already added"));
-    row.addEventListener("click", ()=> pick(app));
+    row.addEventListener("click", ()=>{
+      if(row.__wapSuppressClick){ row.__wapSuppressClick = false; return; }
+      pick(app);
+    });
+    wireTooltip(row, app);
     return row;
   }
 
@@ -140,6 +214,7 @@ function openWebAppPicker(opts){
   }
 
   function draw(){
+    hideTooltip();
     const q = query.trim().toLowerCase();
     let list;
     if(q){
