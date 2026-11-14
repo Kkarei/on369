@@ -153,3 +153,26 @@
 .wap-row-label{ flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .wap-icon-sm .icon-glyph{ width:28px; height:28px; border-radius:8px; flex-shrink:0; }
 .wap-row .wap-added{ margin-left:auto; flex-shrink:0; }
+
+/* ---------- WEB APP PICKER: pricing badges, disclaimer, tooltip ---------- */
+.wap-disclaimer{ font-size:11px; }
+
+.wap-price{
+  font-size:9.5px; font-weight:800; text-transform:uppercase; letter-spacing:.3px;
+  padding:2px 6px; border-radius:5px; align-self:flex-start;
+}
+.wap-price-free{ color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent); }
+.wap-price-freemium{ color: var(--text-secondary); background: color-mix(in srgb, var(--text-secondary) 18%, transparent); }
+.wap-price-paid{ color: var(--warm); background: color-mix(in srgb, var(--warm) 18%, transparent); }
+.wap-price-unknown{ color: var(--text-tertiary); background: color-mix(in srgb, var(--text-tertiary) 15%, transparent); }
+
+.wap-tooltip{
+  position:fixed; z-index:5100; max-width:240px; padding:8px 10px; border-radius:9px;
+  background: var(--bg-0); border:1px solid var(--border-strong); box-shadow: var(--shadow);
+  font-size:11.5px; line-height:1.4; color: var(--text-primary);
+  opacity:0; visibility:hidden; transform:translateY(2px);
+  transition:opacity .12s ease, transform .12s ease; pointer-events:none;
+}
+.wap-tooltip.open{ opacity:1; visibility:visible; transform:translateY(0); }
+.wap-tip-cat{ font-size:9.5px; font-weight:800; text-transform:uppercase; letter-spacing:.3px; color: var(--accent); margin-bottom:3px; }
+.wap-tip-desc{ color: var(--text-secondary); }
