@@ -1,6 +1,37 @@
 "use strict";
 
 /* ============ WIDGETS ============ */
+
+// On a narrow screen, floating widgets (shelves, clocks, calendars — not
+// board widgets, which already fill the width on their own) are stacked
+// into one full-width column instead of keeping their desktop left/top.
+// Without this, widgets placed side by side on a wide screen each clamp
+// their own left independently and keep their original top, so several of
+// them collapse onto the same spot on a phone. Recomputed fresh on every
+// render (including the existing debounced resize handler in main.js), so
+// rotating the device or resizing the window re-stacks live; nothing is
+// written back to wx/wy, so each widget's desktop layout is untouched
+// when the window widens again.
+const WIDGET_NARROW_BREAKPOINT = 820;
+const WIDGET_NARROW_GAP = 12;
+const WIDGET_NARROW_COLLAPSED_H = 48;
+
+function isNarrowWidgetLayout(){ return window.innerWidth <= WIDGET_NARROW_BREAKPOINT; }
+
+function narrowWidgetStack(){
+  const list = state.icons.filter(i=> i.type === "widget" && inSpace(i) && i.kind !== "board" && !(i.kind === "group" && i.embedded));
+  list.sort((a, b)=> (a.wy - b.wy) || (a.wx - b.wx));
+  const left = 8, width = Math.max(140, window.innerWidth - 16);
+  let top = 12;
+  const layout = new Map();
+  list.forEach(w=>{
+    const h = w.collapsed ? WIDGET_NARROW_COLLAPSED_H : (w.ph || 200);
+    layout.set(w.id, { left, width, top });
+    top += h + WIDGET_NARROW_GAP;
+  });
+  return layout;
+}
+
 function addWidget(wx, wy, ids){
   const w = createItem("widget", { label:"Shelf", color: COLORS[state.icons.filter(i=> i.type === "widget").length % COLORS.length], wx: Math.max(0, Math.round(wx)), wy: Math.max(0, Math.round(wy)), parentId:null });
   state.icons.push(w);
@@ -74,18 +105,20 @@ function dragWidgetPart(e, onMove, onDone){
 function renderWidgets(){
   gridLayer.querySelectorAll(".widget").forEach(n=> n.remove());
   clockUpdaters.clear();
+  const narrow = isNarrowWidgetLayout(), stack = narrow ? narrowWidgetStack() : null;
   // boards are drawn last so they sit at the very back; shelves, clocks and icons stay on top of them
   state.icons.filter(i=> i.type === "widget" && inSpace(i)).sort((a, b)=> (a.kind === "board") - (b.kind === "board")).forEach(w=>{
     if(w.kind === "group" && w.embedded) return;
-    if(w.kind === "clock" || w.kind === "calendar"){ renderClockWidget(w); return; }
+    if(w.kind === "clock" || w.kind === "calendar"){ renderClockWidget(w, stack); return; }
     if(w.kind === "board"){ renderBoardWidget(w); return; }
     const hex = /^#[0-9a-f]{6}$/i.test(w.color) ? w.color : COLORS[0];
     const n = parseInt(hex.slice(1), 16), r = n >> 16 & 255, g = n >> 8 & 255, b = n & 255;
     const el = document.createElement("div");
     el.className = "widget" + (w.collapsed ? " collapsed" : "");
     el.dataset.id = w.id; el.dataset.kind = "group";
-    const narrow = window.innerWidth <= 820, pwEff = narrow ? Math.min(w.pw, window.innerWidth - 16) : w.pw, leftEff = narrow ? Math.max(0, Math.min(w.wx, window.innerWidth - pwEff - 8)) : w.wx;
-    el.style.cssText = `left:${leftEff}px;top:${w.wy}px;width:${pwEff}px;height:${w.collapsed ? "auto" : w.ph + "px"};background:rgba(${r},${g},${b},${w.opacity});` + (w.blur ? "backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);" : "");
+    const pos = stack && stack.get(w.id);
+    const leftEff = pos ? pos.left : w.wx, topEff = pos ? pos.top : w.wy, pwEff = pos ? pos.width : w.pw;
+    el.style.cssText = `left:${leftEff}px;top:${topEff}px;width:${pwEff}px;height:${w.collapsed ? "auto" : w.ph + "px"};background:rgba(${r},${g},${b},${w.opacity});` + (w.blur ? "backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);" : "");
     if(w.opacity >= 0.6) el.style.color = (0.299*r + 0.587*g + 0.114*b) / 255 > 0.6 ? "#14161c" : "#fff";
     const head = document.createElement("div"); head.className = "widget-head";
     const title = document.createElement("span"); title.className = "widget-title"; title.textContent = w.label;
@@ -109,7 +142,7 @@ function renderWidgets(){
       e.preventDefault(); e.stopPropagation(); showCanvasContextMenu(e.clientX, e.clientY, w.id);
     });
     head.addEventListener("pointerdown", (e)=>{
-      if(e.target.closest(".widget-btn") || e.target.isContentEditable || e.button > 0) return;
+      if(pos || e.target.closest(".widget-btn") || e.target.isContentEditable || e.button > 0) return;   // position is auto-arranged while stacked; dragging would fight it
       const x0 = w.wx, y0 = w.wy;
       dragWidgetPart(e, (dx, dy)=>{ w.wx = Math.max(0, x0 + dx); w.wy = Math.max(0, y0 + dy); el.style.left = w.wx + "px"; el.style.top = w.wy + "px"; }, ()=>{ w.wx = Math.round(w.wx); w.wy = Math.round(w.wy); save(); });
     });

@@ -185,17 +185,17 @@ function addClockWidget(wx, wy){
   return w;
 }
 
-function renderClockWidget(w){
+function renderClockWidget(w, stack){
   const isCal = w.kind === "calendar";
   const def = isCal ? (CALENDAR_STYLES[w.calStyle] || CALENDAR_STYLES.month) : (CLOCK_STYLES[w.clockStyle] || CLOCK_STYLES.poster);
   const hex = /^#[0-9a-f]{6}$/i.test(w.color) ? w.color : "#0b0f1a";
   const n = parseInt(hex.slice(1), 16), r = n >> 16 & 255, g = n >> 8 & 255, b = n & 255;
-  const narrow = window.innerWidth <= 820, pw = narrow ? Math.min(w.pw, window.innerWidth - 16) : w.pw;
-  const left = narrow ? Math.max(0, Math.min(w.wx, window.innerWidth - pw - 8)) : w.wx;
+  const pos = stack && stack.get(w.id);
+  const left = pos ? pos.left : w.wx, top = pos ? pos.top : w.wy, pw = pos ? pos.width : w.pw;
   const el = document.createElement("div");
   el.className = "widget clock-widget" + (isCal ? " calendar-widget" : "") + (w.opacity < 0.04 ? " bare" : "");
   el.dataset.id = w.id;
-  el.style.cssText = `left:${left}px;top:${w.wy}px;width:${pw}px;height:${w.ph}px;background:rgba(${r},${g},${b},${w.opacity});` + (w.blur && w.opacity >= 0.04 ? "backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);" : "");
+  el.style.cssText = `left:${left}px;top:${top}px;width:${pw}px;height:${w.ph}px;background:rgba(${r},${g},${b},${w.opacity});` + (w.blur && w.opacity >= 0.04 ? "backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);" : "");
   if(w.accent) el.style.setProperty("--clk-accent", w.accent);
   if(w.opacity >= 0.6) el.style.color = (0.299*r + 0.587*g + 0.114*b) / 255 > 0.6 ? "#14161c" : "#fff";
   const face = document.createElement("div"); face.className = "clk-face";
@@ -213,7 +213,7 @@ function renderClockWidget(w){
   el.addEventListener("contextmenu", (e)=>{ e.preventDefault(); e.stopPropagation(); openClockSettings(w, e.clientX, e.clientY); });
   cog.addEventListener("click", ()=>{ const rc = cog.getBoundingClientRect(); openClockSettings(w, rc.left, rc.bottom + 6); });
   el.addEventListener("pointerdown", (e)=>{
-    if(e.target.closest(".clock-cog, .widget-grip, .clk-date, .k-nav") || e.button > 0) return;
+    if(pos || e.target.closest(".clock-cog, .widget-grip, .clk-date, .k-nav") || e.button > 0) return;   // position is auto-arranged while stacked; dragging would fight it
     const x0 = w.wx, y0 = w.wy;
     dragWidgetPart(e, (dx, dy)=>{ w.wx = Math.max(0, x0 + dx); w.wy = Math.max(0, y0 + dy); el.style.left = w.wx + "px"; el.style.top = w.wy + "px"; }, ()=>{ w.wx = Math.round(w.wx); w.wy = Math.round(w.wy); save(); });
   });
