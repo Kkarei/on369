@@ -7,7 +7,7 @@ let resizeTimer = null;
 function initMain(){
   let finished = false;
   const showApp = ()=>{
-    applyAppearance(); applyChromeVisibility(); applyIconScale(); applyUserNote(); updateClipFillToggle(); renderWebtopTabs(); tickClock(); render();
+    applyAppearance(); applyChromeVisibility(); applyHideIcons(); applyIconScale(); applyUserNote(); updateClipFillToggle(); renderWebtopTabs(); tickClock(); render();
     if(sess && sess.needsResolve) AppManager.launch("cloud", { title:"Cloud Backup", color: COLORS[1] });
     else if(!state.gettingStartedDismissed) AppManager.launch("getting-started", { title:"Getting Started", color: COLORS[1] });
     cloudBaseline(); undoReset();
