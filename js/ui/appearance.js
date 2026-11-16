@@ -158,6 +158,21 @@ function applyChromeVisibility(){
 }
 
 
+// Hides every icon and widget (they all live in #gridLayer) while leaving
+// the wallpaper (applied to #webtop, gridLayer's parent), topbar, footer
+// and the fab/taskbar untouched — a quick "clear the desk" view, not a
+// deletion. Toggled from the canvas right-click menu's View submenu.
+function applyHideIcons(){
+  gridLayer.style.display = state.hideIcons ? "none" : "";
+}
+
+function toggleHideIcons(){
+  state.hideIcons = !state.hideIcons;
+  applyHideIcons();
+  save();
+}
+
+
 /* ============ RESET TO DEFAULTS ============
    Deliberately scoped to appearance/settings only — theme, wallpaper,
    icon size, search engine, logo/search-bar setup. state.icons (the
