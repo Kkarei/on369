@@ -148,7 +148,7 @@ function showCanvasContextMenu(x, y, parentId){
   }
   items.push({ label:"New folder", icon:"folder", action: ()=> openItemModal({mode:"create", type:"folder", parentId}) });
   items.push({ label:"New bookmark", icon:"bookmark", action: ()=> openItemModal({mode:"create", type:"bookmark", parentId}) });
-  items.push({ label:"New app", icon:"grid", action: ()=> openAppPicker(parentId) });
+  items.push({ label:"Utility apps", icon:"grid", action: ()=> openAppPicker(parentId) });
   items.push({ label:"Web app", icon:"globe", action: ()=> openWebAppPicker({ parentId }) });
   items.push("sep");
   items.push({ label:"Import bookmarks…", icon:"import", action: ()=> triggerBookmarkImport(parentId) });
