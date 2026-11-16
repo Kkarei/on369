@@ -9,7 +9,12 @@ function openAppPicker(parentId){
   appPickerParentId = parentId;
   const list = document.getElementById("appPickerList");
   list.innerHTML = "";
-  AppManager.listApps().forEach((app, i)=>{
+  // Getting Started, Cloud Backup and Backup & Restore already have their
+  // own dedicated entry points (the guide's own icon or Settings → More,
+  // and the cloud/backup buttons in the top bar) — listing them here too
+  // would just be a second, more confusing way to reach the same thing.
+  const EXCLUDED_UTILITY_APPS = ["getting-started", "cloud", "backup"];
+  AppManager.listApps().filter(app=> !EXCLUDED_UTILITY_APPS.includes(app.id)).forEach((app, i)=>{
     const appId = app.id;
     const color = COLORS[i % COLORS.length];
     const row = document.createElement("div");
