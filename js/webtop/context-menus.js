@@ -115,7 +115,8 @@ function showCanvasContextMenu(x, y, parentId){
     { label:"View", icon:"view", submenu: [
       { label:"Larger icons", icon:"zoomIn", action: ()=> setIconScale(state.iconScale + 0.1) },
       { label:"Smaller icons", icon:"zoomOut", action: ()=> setIconScale(state.iconScale - 0.1) },
-      { label:"Reset icon size", icon:"reset", action: ()=> setIconScale(1) }
+      { label:"Reset icon size", icon:"reset", action: ()=> setIconScale(1) },
+      { label: state.hideIcons ? "Show icons" : "Hide icons", icon: state.hideIcons ? "view" : "eyeOff", action: toggleHideIcons }
     ] },
     { label:"Sort by", icon:"sort", submenu: [
       { label:"Name", icon:"sort", action: ()=> sortChildren(parentId, "name") },
