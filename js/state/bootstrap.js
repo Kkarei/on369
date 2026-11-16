@@ -162,6 +162,7 @@ async function loadAndInit(){
         state.chromeLocked = legacy.chromeLocked !== undefined ? !!legacy.chromeLocked : true;
         state.showLogo = legacy.showLogo !== undefined ? !!legacy.showLogo : true;
         state.showSearchBar = legacy.showSearchBar !== undefined ? !!legacy.showSearchBar : true;
+        state.hideIcons = !!legacy.hideIcons;
         state.customLogo = legacy.customLogo || null;
         state.customWallpaperImage = legacy.customWallpaperImage || null;
         state.wallpaperFit = legacy.wallpaperFit || "fill";
@@ -198,6 +199,7 @@ async function loadAndInit(){
     state.chromeLocked = "chromeLocked" in prefsMap ? !!prefsMap.chromeLocked : true;
     state.showLogo = "showLogo" in prefsMap ? !!prefsMap.showLogo : true;
     state.showSearchBar = "showSearchBar" in prefsMap ? !!prefsMap.showSearchBar : true;
+    state.hideIcons = !!prefsMap.hideIcons;
     state.customLogo = prefsMap.customLogo || null;
     state.customWallpaperImage = prefsMap.customWallpaperImage || null;
     state.wallpaperFit = prefsMap.wallpaperFit || "fill";

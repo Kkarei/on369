@@ -19,6 +19,7 @@ function prefEntries(){
     { key:"chromeLocked", value: state.chromeLocked },
     { key:"showLogo", value: state.showLogo },
     { key:"showSearchBar", value: state.showSearchBar },
+    { key:"hideIcons", value: state.hideIcons },
     { key:"wallpaperFit", value: state.wallpaperFit },
     { key:"wallpaperShow", value: state.wallpaperShow },
     { key:"userNote", value: state.userNote },
