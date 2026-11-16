@@ -39,7 +39,8 @@ const CATEGORY_LABELS = {
   entertainment: "Entertainment & Gaming",
   finance:       "Finance & Trading",
   business:      "Business Tools",
-  utilities:     "Everyday Utilities"
+  utilities:     "Everyday Utilities",
+  on369:         "Other on369 Apps"
 };
 
 // Order the category picker shows them in (Featured first, then the rest
@@ -237,7 +238,14 @@ const APP_CATALOG = {
   "kra-etims":       { label:"KRA eTIMS",      url:"https://etims.kra.go.ke",    categories:["business"], pricing:"free",
     desc:"Manage electronic tax invoicing and related tax compliance services in Kenya." },
   "ecitizen-ke":     { label:"eCitizen Kenya", url:"https://www.ecitizen.go.ke", categories:["business"], pricing:"free",
-    desc:"Access Kenyan government services, applications, payments and official documents online." }
+    desc:"Access Kenyan government services, applications, payments and official documents online." },
+
+  // Other on369 Apps — on369's own companion web apps, previously seeded
+  // directly onto every new webtop; now opt-in from the Web app picker.
+  "pencraft-notes":    { label:"Pencraft Notes",     url:"https://pencraft.on369.top", categories:["on369"], pricing:"free",
+    desc:"on369's companion note-taking web app for writing and organizing notes." },
+  "beartly-ui-builder":{ label:"Beartly UI Builder", url:"https://beartly.on369.top",  categories:["on369"], pricing:"free",
+    desc:"on369's companion tool for designing and building user interfaces." }
 };
 
 // Looks up catalog ids; unknown ids are skipped (never throw) so a preset
