@@ -140,7 +140,7 @@ const GS_STEPS = [
         { label:"Bookmark", icon:"bookmark", action:()=>{ hintEl.textContent = "That's how you'd add a bookmark."; } },
         { label:"Folder", icon:"folder", action:()=>{ hintEl.textContent = "That's how you'd add a folder."; } },
         { label:"Web app", icon:"globe", action:()=>{ hintEl.textContent = "Turns a website into an app-style icon."; } },
-        { label:"Native app\u2026", icon:"grid", action:()=>{ hintEl.textContent = "Calculator, Todo, Notes \u2014 even this guide."; } },
+        { label:"Utility apps", icon:"grid", action:()=>{ hintEl.textContent = "Calculator, Todo, Notes \u2014 on369's own lightweight apps."; } },
         { label:"Widget", icon:"grid", submenu:[
           { label:"Shelf (group icons)", icon:"grid", action:()=>{ hintEl.textContent = "More on shelves next."; } },
           { label:"Clock", icon:"clock", action:()=>{ hintEl.textContent = "A clock widget for your webtop."; } },
