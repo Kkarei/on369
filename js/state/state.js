@@ -27,9 +27,8 @@ function seedState(){
       { id: uid(), type:"app", appId:"calculator", label:"Calculator", color: COLORS[5], x:0, y:0, parentId:null },
       { id: uid(), type:"app", appId:"todo", label:"Todo", color: COLORS[2], x:1, y:0, parentId:null },
       { id: uid(), type:"app", appId:"getting-started", label:"Getting Started", color: COLORS[1], x:2, y:0, parentId:null },
-      { id: uid(), type:"webapp", label:"Pencraft Notes", url:"https://pencraft.on369.top", color: COLORS[4], x:3, y:0, parentId:null },
-      { id: uid(), type:"webapp", label:"Beartly UI Builder", url:"https://beartly.on369.top", color: COLORS[0], x:0, y:1, parentId:null },
-      { id: uid(), type:"folder", label:"Read Later", color: COLORS[3], x:1, y:1, parentId:null }
+      { id: uid(), type:"widget", label:"Clock", kind:"clock", clockStyle:"poster", pw:230, ph:300, opacity:0, blur:false, color:"#0b0f1a", wx:40, wy:140, parentId:null },
+      { id: uid(), type:"widget", label:"Calendar", kind:"calendar", calStyle:"month", pw:280, ph:300, opacity:0.35, blur:true, color:"#0b0f1a", wx:290, wy:140, parentId:null }
     ]
   };
 }
