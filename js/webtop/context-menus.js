@@ -138,7 +138,11 @@ function showCanvasContextMenu(x, y, parentId){
     items.push("sep");
   }
   if(parentId === null){
-    const gr = gridLayer.getBoundingClientRect(), wx = x - gr.left, wy = y - gr.top;
+    // webtop, not gridLayer: gridLayer is display:none while icons are
+    // hidden, which zeroes its own getBoundingClientRect(); webtop (its
+    // parent, never hidden) shares the same top-left origin, so this
+    // stays correct either way.
+    const gr = webtop.getBoundingClientRect(), wx = x - gr.left, wy = y - gr.top;
     items.push({ label:"Add widget", icon:"grid", submenu: [
       { label:"Shelf (group icons)", icon:"grid", action: ()=> openWidgetSettings(addWidget(wx, wy, []), x, y) },
       { label:"Clock", icon:"clock", action: ()=> openClockSettings(addClockWidget(wx, wy), x, y) },
@@ -237,7 +241,13 @@ function initWebtopContextMenus(){
     if(activeCtxMenu && !inMenu && !inSubmenu) closeCtxMenu();
   });
 
-  gridLayer.addEventListener("contextmenu", (e)=>{
+  // webtop, not gridLayer: gridLayer is display:none while icons are
+  // hidden (see applyHideIcons in appearance.js), and a display:none
+  // element can't be the target of a mouse event at all — right-clicking
+  // where it used to be would fall through to the browser's own context
+  // menu instead of on369's, with no way back to "Show icons". webtop
+  // (gridLayer's parent) stays visible either way.
+  webtop.addEventListener("contextmenu", (e)=>{
     if(e.target.closest(".icon, .widget")) return;
     e.preventDefault();
     showCanvasContextMenu(e.clientX, e.clientY, null);
@@ -247,7 +257,7 @@ function initWebtopContextMenus(){
     e.preventDefault();
     showCanvasContextMenu(e.clientX, e.clientY, currentFolderId);
   });
-  gridLayer.addEventListener("keydown", (e)=> handleIconGridKeydown(e, null));
+  webtop.addEventListener("keydown", (e)=> handleIconGridKeydown(e, null));
   folderBody.addEventListener("keydown", (e)=> handleIconGridKeydown(e, currentFolderId));
 
 }
