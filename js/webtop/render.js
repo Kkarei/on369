@@ -84,11 +84,16 @@ function reflowForNarrowScreen(){
 
 
 function render(){
+  // Rebuilding the icons and widgets briefly empties the scroll area, which can
+  // clamp scrollTop to 0 (the page "jumping back to the top" on any tap).
+  // Keep the scroll position across the rebuild.
+  const keepScroll = webtop.scrollTop;
   reflowForNarrowScreen();
   renderInto(gridLayer, null);
   renderWidgets();
   if(currentFolderId !== null){
     renderInto(folderBody, currentFolderId);
   }
+  if(webtop.scrollTop !== keepScroll) webtop.scrollTop = keepScroll;
 }
 

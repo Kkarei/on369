@@ -81,3 +81,10 @@
 .w-day b{ font-size:min(6cqw,26cqh); font-variant-numeric:tabular-nums; }
 .w-day.today{ background:var(--a); color:#fff; }
 .w-day.today small{ opacity:.9; }
+
+/* ---------- Clock & Calendar native apps ---------- */
+.clockapp{ display:flex; flex-direction:column; height:100%; min-height:0; }
+.clockapp-bar{ display:flex; align-items:center; gap:8px; padding:8px 10px; border-bottom:1px solid var(--border); font-size:12px; color:var(--text-secondary); }
+.clockapp-style{ background:var(--surface); color:var(--text-primary); border:1px solid var(--border); border-radius:8px; padding:4px 8px; font:inherit; }
+.clockapp-check{ display:flex; align-items:center; gap:6px; cursor:pointer; }
+.clockapp-stage{ position:relative; flex:1; min-height:0; container-type:size; }

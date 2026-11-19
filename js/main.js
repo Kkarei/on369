@@ -54,6 +54,8 @@ initServicesBookmarkImport();
 initAppsCalculator();
 initAppsNotes();
 initAppsTodo();
+initAppsClock();
+initAppsCalendar();
 initAppsGettingStarted();
 initUiSearchBar();
 initUiTouchLongPress();

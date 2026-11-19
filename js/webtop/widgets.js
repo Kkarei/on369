@@ -97,12 +97,40 @@ function openWidgetSettings(w, x, y){
 function dragWidgetPart(e, onMove, onDone){
   e.preventDefault();
   const sx = e.clientX, sy = e.clientY;
+  // Capture the pointer so a touch drag keeps reporting to this handle even when
+  // the finger slides off it, and treat pointercancel like a release so the
+  // listeners never leak and the new size/position is still saved.
+  try{ if(e.target && e.target.setPointerCapture) e.target.setPointerCapture(e.pointerId); }catch(_){}
   const mv = (ev)=> onMove(ev.clientX - sx, ev.clientY - sy);
-  const up = ()=>{ document.removeEventListener("pointermove", mv); document.removeEventListener("pointerup", up); onDone(); };
-  document.addEventListener("pointermove", mv); document.addEventListener("pointerup", up);
+  let done = false;
+  const up = ()=>{
+    if(done) return; done = true;
+    document.removeEventListener("pointermove", mv);
+    document.removeEventListener("pointerup", up);
+    document.removeEventListener("pointercancel", up);
+    onDone();
+  };
+  document.addEventListener("pointermove", mv); document.addEventListener("pointerup", up); document.addEventListener("pointercancel", up);
+}
+
+// While a stacked (phone-layout) widget is being resized, move the widgets
+// below it live so the column stays tidy instead of overlapping until release.
+function restackNarrowWidgetsLive(){
+  narrowWidgetStack().forEach((pos, id)=>{
+    const el = gridLayer.querySelector(`.widget[data-id="${id}"]`);
+    if(el) el.style.top = pos.top + "px";
+  });
 }
 
 function renderWidgets(){
+  // Removing every widget momentarily shrinks the scrollable area; if layout runs
+  // in that window the browser clamps scrollTop to 0 and the page jumps to the
+  // top. Remember it and put it back once the widgets are drawn again.
+  const keepScroll = webtop.scrollTop;
+  try{ renderWidgetsInner(); }finally{ if(webtop.scrollTop !== keepScroll) webtop.scrollTop = keepScroll; }
+}
+
+function renderWidgetsInner(){
   gridLayer.querySelectorAll(".widget").forEach(n=> n.remove());
   clockUpdaters.clear();
   const narrow = isNarrowWidgetLayout(), stack = narrow ? narrowWidgetStack() : null;
@@ -147,8 +175,13 @@ function renderWidgets(){
       dragWidgetPart(e, (dx, dy)=>{ w.wx = Math.max(0, x0 + dx); w.wy = Math.max(0, y0 + dy); el.style.left = w.wx + "px"; el.style.top = w.wy + "px"; }, ()=>{ w.wx = Math.round(w.wx); w.wy = Math.round(w.wy); save(); });
     });
     grip.addEventListener("pointerdown", (e)=>{
-      const w0 = w.pw, h0 = w.ph;
-      dragWidgetPart(e, (dx, dy)=>{ w.pw = Math.max(160, Math.round(w0 + dx)); w.ph = Math.max(110, Math.round(h0 + dy)); el.style.width = w.pw + "px"; el.style.height = w.ph + "px"; }, ()=>{ save(); render(); });
+      const w0 = w.pw, h0 = w.ph, stacked = !!pos;
+      // Stacked on a phone: the width is always the full column, so only the height is resizable.
+      dragWidgetPart(e, (dx, dy)=>{
+        w.ph = Math.max(110, Math.round(h0 + dy)); el.style.height = w.ph + "px";
+        if(stacked) restackNarrowWidgetsLive();
+        else{ w.pw = Math.max(160, Math.round(w0 + dx)); el.style.width = w.pw + "px"; }
+      }, ()=>{ save(); render(); });
     });
   });
 }

@@ -433,3 +433,8 @@
     background: var(--bg-0); border: 1px solid var(--border); color: var(--text-primary);
   }
   .gs-note-input:focus{ outline: none; border-color: var(--accent); }
+
+/* Bigger touch target for the resize corner on touch screens. */
+@media (pointer:coarse){
+  .widget-grip{ width:30px; height:30px; }
+}

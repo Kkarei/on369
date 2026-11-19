@@ -8,11 +8,14 @@ function initUiTouchLongPress(){
   // devtools hook without it being part of the real public surface.
   /* ============ TOUCH LONG-PRESS ============
      Touch/pen long-press opens the same context menu as right-click. Fires at
-     600ms so browsers that send a native contextmenu (Android) win and cancel this. */
+     600ms so browsers that send a native contextmenu (Android) win and cancel this.
+     Listens on webtop, not gridLayer: gridLayer is display:none while icons are
+     hidden, so a press there would never register and there would be no way
+     to reach "Show icons" on touch. */
   (function(){
     let timer = null, sx = 0, sy = 0, fired = false;
     const cancel = ()=>{ clearTimeout(timer); timer = null; };
-    [gridLayer, folderBody].forEach(layer=>{
+    [webtop, folderBody].forEach(layer=>{
       layer.addEventListener("pointerdown", (e)=>{
         if(e.pointerType === "mouse" || !e.isPrimary) return;
         fired = false; sx = e.clientX; sy = e.clientY;

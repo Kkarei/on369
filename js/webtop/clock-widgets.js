@@ -218,8 +218,13 @@ function renderClockWidget(w, stack){
     dragWidgetPart(e, (dx, dy)=>{ w.wx = Math.max(0, x0 + dx); w.wy = Math.max(0, y0 + dy); el.style.left = w.wx + "px"; el.style.top = w.wy + "px"; }, ()=>{ w.wx = Math.round(w.wx); w.wy = Math.round(w.wy); save(); });
   });
   grip.addEventListener("pointerdown", (e)=>{
-    const w0 = w.pw, h0 = w.ph;
-    dragWidgetPart(e, (dx, dy)=>{ w.pw = Math.max(120, Math.round(w0 + dx)); w.ph = Math.max(80, Math.round(h0 + dy)); el.style.width = w.pw + "px"; el.style.height = w.ph + "px"; }, ()=>{ save(); render(); });
+    const w0 = w.pw, h0 = w.ph, stacked = !!pos;
+    // Stacked on a phone: the width is always the full column, so only the height is resizable.
+    dragWidgetPart(e, (dx, dy)=>{
+      w.ph = Math.max(80, Math.round(h0 + dy)); el.style.height = w.ph + "px";
+      if(stacked) restackNarrowWidgetsLive();
+      else{ w.pw = Math.max(120, Math.round(w0 + dx)); el.style.width = w.pw + "px"; }
+    }, ()=>{ save(); render(); });
   });
 }
 
