@@ -350,6 +350,7 @@
   .gs-welcome-actions, .gs-done-actions{ display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 260px; margin-top: 6px; }
 
   .gs-features-intro{ font-size: 12px; color: var(--text-secondary); text-align: left; margin: 0 0 10px; }
+  .gs-features-actions{ display: flex; justify-content: center; margin-top: 16px; }
   .gs-features-grid{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   @media (max-width: 420px){ .gs-features-grid{ grid-template-columns: 1fr; } }
   .gs-feature-card{ display: flex; gap: 10px; padding: 11px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); text-align: left; }

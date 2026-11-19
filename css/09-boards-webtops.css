@@ -176,3 +176,18 @@
 .wap-tooltip.open{ opacity:1; visibility:visible; transform:translateY(0); }
 .wap-tip-cat{ font-size:9.5px; font-weight:800; text-transform:uppercase; letter-spacing:.3px; color: var(--accent); margin-bottom:3px; }
 .wap-tip-desc{ color: var(--text-secondary); }
+
+/* ---------- WEB APP PICKER: "visit website" link beside each app ---------- */
+.wap-item{ position:relative; min-width:0; }
+.wap-item-card > .wap-card{ width:100%; height:100%; }
+.wap-visit{
+  position:absolute; display:flex; align-items:center; justify-content:center;
+  width:28px; height:28px; border-radius:8px; color:var(--text-secondary);
+  background:var(--bg-0); border:1px solid var(--border-strong); text-decoration:none; z-index:1;
+}
+.wap-visit svg{ width:14px; height:14px; }
+.wap-visit:hover, .wap-visit:focus-visible{ color:#fff; background:var(--accent); border-color:var(--accent); outline:none; }
+.wap-item-card .wap-visit{ top:6px; right:6px; }
+.wap-item-row .wap-visit{ top:50%; right:8px; transform:translateY(-50%); }
+.wap-item-row > .wap-row{ padding-right:46px; }
+@media (pointer:coarse){ .wap-visit{ width:34px; height:34px; } .wap-visit svg{ width:16px; height:16px; } }

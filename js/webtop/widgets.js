@@ -18,11 +18,38 @@ const WIDGET_NARROW_COLLAPSED_H = 48;
 
 function isNarrowWidgetLayout(){ return window.innerWidth <= WIDGET_NARROW_BREAKPOINT; }
 
+// Widgets whose left edges are within this many px count as one column on the
+// large-screen layout.
+const WIDGET_COLUMN_TOLERANCE = 60;
+
+// Reading order for the phone's single column, matching the large-screen
+// layout: columns are taken left to right, and within a column top to bottom.
+// So the widget at the top-left on a big screen is first on a phone, and the
+// one to its right (or the next column over) follows after that column.
+function orderWidgetsForStack(list){
+  const byX = list.slice().sort((a, b)=> (a.wx - b.wx) || (a.wy - b.wy));
+  const cols = [];
+  byX.forEach(w=>{
+    let best = null;
+    cols.forEach(c=>{
+      const d = Math.abs(w.wx - c.x);
+      if(d <= WIDGET_COLUMN_TOLERANCE && (!best || d < Math.abs(w.wx - best.x))) best = c;
+    });
+    if(best) best.items.push(w);
+    else cols.push({ x: w.wx, items: [w] });
+  });
+  cols.sort((a, b)=> a.x - b.x);
+  const out = [];
+  cols.forEach(c=> c.items.sort((a, b)=> (a.wy - b.wy) || (a.wx - b.wx)).forEach(w=> out.push(w)));
+  return out;
+}
+
 function narrowWidgetStack(){
-  const list = state.icons.filter(i=> i.type === "widget" && inSpace(i) && i.kind !== "board" && !(i.kind === "group" && i.embedded));
-  list.sort((a, b)=> (a.wy - b.wy) || (a.wx - b.wx));
+  const list = orderWidgetsForStack(state.icons.filter(i=> i.type === "widget" && inSpace(i) && i.kind !== "board" && !(i.kind === "group" && i.embedded)));
   const left = 8, width = Math.max(140, window.innerWidth - 16);
-  let top = 12;
+  // Start where the icon grid starts: clear of the top bar and the search bar
+  // (it used to start at 12px, underneath both).
+  let top = getGridOffset(null).top;
   const layout = new Map();
   list.forEach(w=>{
     const h = w.collapsed ? WIDGET_NARROW_COLLAPSED_H : (w.ph || 200);

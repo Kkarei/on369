@@ -20,6 +20,7 @@ const wapEl = (tag, cls, text)=>{ const n = document.createElement(tag); if(cls)
 let wapViewMode = "grid";
 
 const WAP_GRID_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.5"></rect><rect x="13" y="3" width="8" height="8" rx="1.5"></rect><rect x="3" y="13" width="8" height="8" rx="1.5"></rect><rect x="13" y="13" width="8" height="8" rx="1.5"></rect></svg>`;
+const WAP_VISIT_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"></path><path d="M20 4l-9 9"></path><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"></path></svg>`;
 const WAP_LIST_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="18" x2="20" y2="18"></line></svg>`;
 
 // Display labels for APP_CATALOG's `pricing` field, shown as a small badge
@@ -42,7 +43,7 @@ function openWebAppPicker(opts){
   const onKey = (e)=>{ if(e.key === "Escape"){ e.stopPropagation(); close(); } };
 
   box.appendChild(wapEl("div", "confirm-title", "Add a web app"));
-  box.appendChild(wapEl("p", "cloud-note", "Pick a known app below, or add any other site as a bookmark."));
+  box.appendChild(wapEl("p", "cloud-note", "Tap an app to add it to your webtop. Tap the arrow on an app to visit its website first, or add any other site as a bookmark."));
   box.appendChild(wapEl("p", "cloud-note wap-disclaimer", "These are third-party services, not part of on369 — opening one may ask you to sign in with your own account. Pricing (shown on each app) varies: Free, Freemium or Paid."));
 
   const searchInput = document.createElement("input");
@@ -171,6 +172,30 @@ function openWebAppPicker(opts){
     return wapEl("small", "wap-price wap-price-" + (app.pricing || "unknown"), label);
   }
 
+  // "Visit" is a secondary action: tapping the card still adds the app in one
+  // step (the fast path), and a small arrow beside it opens the app's own
+  // website in a new tab so you can look before you add. A real <a> placed
+  // NEXT TO the card button (not inside it — a link inside a button is invalid
+  // and unreliable on touch).
+  function visitLink(app){
+    if(!/^https?:\/\//i.test(app.url || "")) return null;
+    const a = wapEl("a", "wap-visit");
+    a.href = app.url; a.target = "_blank"; a.rel = "noopener noreferrer";
+    a.title = `Visit ${app.label} website`;
+    a.setAttribute("aria-label", `Visit ${app.label} website (opens in a new tab)`);
+    a.innerHTML = WAP_VISIT_SVG;
+    a.addEventListener("click", (e)=> e.stopPropagation());
+    return a;
+  }
+
+  function withVisit(el, app, kind){
+    const wrap = wapEl("div", "wap-item wap-item-" + kind);
+    wrap.appendChild(el);
+    const v = visitLink(app);
+    if(v) wrap.appendChild(v);
+    return wrap;
+  }
+
   function cardFor(app, i){
     const card = wapEl("button", "preset-card wap-card");
     card.type = "button";
@@ -185,7 +210,7 @@ function openWebAppPicker(opts){
       pick(app);
     });
     wireTooltip(card, app);
-    return card;
+    return withVisit(card, app, "card");
   }
 
   function rowFor(app, i){
@@ -202,7 +227,7 @@ function openWebAppPicker(opts){
       pick(app);
     });
     wireTooltip(row, app);
-    return row;
+    return withVisit(row, app, "row");
   }
 
   // "all" isn't a stored category (app-catalog.js is untouched) — it's

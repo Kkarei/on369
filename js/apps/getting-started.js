@@ -401,6 +401,7 @@ function gsWelcomeScreenHTML(){
     <div class="gs-welcome-actions">
       <button type="button" class="gs-nav-btn primary" data-gs-start>Start the tour</button>
       <button type="button" class="gs-nav-btn" data-gs-skipfeat>Skip — show me the features</button>
+      <button type="button" class="gs-nav-btn" data-gs-close>Close Getting Started</button>
     </div>
   </div>`;
 }
@@ -482,7 +483,9 @@ function renderGettingStartedApp(body, api){
           <div><p class="gs-feature-title">${f.title}</p><p class="gs-feature-desc">${f.desc}</p></div>
         </div>`;
       }).join("")}
-    </div>`;
+    </div>
+    <div class="gs-features-actions"><button type="button" class="gs-nav-btn" data-gs-close>Close Getting Started</button></div>`;
+    featuresPane.querySelector("[data-gs-close]").addEventListener("click", ()=>{ if(api && api.close) api.close(); });
   }
 
   function wireDismissRow(root){
@@ -513,6 +516,7 @@ function renderGettingStartedApp(body, api){
     if(screenIdx === -1){
       guidePane.querySelector("[data-gs-start]").addEventListener("click", ()=> goTo(0));
       guidePane.querySelector("[data-gs-skipfeat]").addEventListener("click", ()=> switchTab("features"));
+      guidePane.querySelector("[data-gs-close]").addEventListener("click", ()=>{ if(api && api.close) api.close(); });
     }else if(screenIdx === GS_STEPS.length){
       guidePane.querySelector("[data-gs-seefeat]").addEventListener("click", ()=> switchTab("features"));
       guidePane.querySelector("[data-gs-done]").addEventListener("click", ()=>{
