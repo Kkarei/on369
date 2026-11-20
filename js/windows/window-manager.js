@@ -39,14 +39,18 @@ function openWindow(appId, title, color){
     renderWindows();
     return;
   }
-  const vw = window.innerWidth, vh = window.innerHeight;
-  const w = Math.min(app.defaultWidth, vw-32);
-  const h = Math.min(app.defaultHeight, vh-160);
+  // Size and place the window inside the usable area (clear of the top/search bars and
+  // the taskbar). The cascade offset used to push later windows past the right edge on
+  // phones, so everything is clamped to the available bounds.
+  const mb = maxBounds();
+  const w = Math.max(Math.min(app.minWidth || 200, mb.w), Math.min(app.defaultWidth, mb.w));
+  const h = Math.max(Math.min(app.minHeight || 160, mb.h), Math.min(app.defaultHeight, mb.h));
   const stack = windows.length % 6;
+  const vw = window.innerWidth, vh = window.innerHeight;
   win = {
     id: appId, appId, title, color,
-    x: Math.round((vw-w)/2 + stack*20),
-    y: Math.round((vh-h)/2 - 30 + stack*18),
+    x: Math.round(Math.min(Math.max((vw-w)/2 + stack*20, mb.x), mb.x + mb.w - w)),
+    y: Math.round(Math.min(Math.max((vh-h)/2 - 30 + stack*18, mb.y), mb.y + mb.h - h)),
     w, h,
     z: ++topZ,
     minimized: false,
@@ -58,6 +62,21 @@ function openWindow(appId, title, color){
   renderWindows();
 }
 
+
+// Keep every window on screen after the viewport changes (rotation, browser resize,
+// on-screen keyboard closing). Maximised windows re-fill the new area; others are
+// shrunk if needed and pulled back inside it.
+function fitWindowsToViewport(){
+  if(!windows.length) return;
+  const mb = maxBounds();
+  windows.forEach(win=>{
+    if(win.maximized){ win.x = mb.x; win.y = mb.y; win.w = mb.w; win.h = mb.h; return; }
+    win.w = Math.min(win.w, mb.w); win.h = Math.min(win.h, mb.h);
+    win.x = Math.min(Math.max(win.x, mb.x), mb.x + mb.w - win.w);
+    win.y = Math.min(Math.max(win.y, mb.y), mb.y + mb.h - win.h);
+  });
+  renderWindows();
+}
 
 function focusWindow(id){
   const win = windows.find(w=>w.id===id);
@@ -191,8 +210,9 @@ function wireWindowDrag(handle, win, el){
     try{ handle.setPointerCapture(pointerId); }catch(err){}
     function onMove(ev){
       if(ev.pointerId!==pointerId) return;
-      win.x = originX + (ev.clientX-startX);
-      win.y = Math.max(4, originY + (ev.clientY-startY));
+      const keep = 72;   // always leave this much of the titlebar on screen so the window can be grabbed again
+      win.x = Math.min(Math.max(originX + (ev.clientX-startX), keep - win.w), window.innerWidth - keep);
+      win.y = Math.min(Math.max(4, originY + (ev.clientY-startY)), window.innerHeight - 48);
       el.style.left = win.x+"px"; el.style.top = win.y+"px";
     }
     function onUp(ev){

@@ -83,7 +83,7 @@ function openSubmenu(triggerRow, items){
   const vw = window.innerWidth, vh = window.innerHeight;
   const sw = sub.offsetWidth, sh = sub.offsetHeight;
   const left = (r.right + sw <= vw - 8) ? r.right - 2 : Math.max(8, r.left - sw + 2);
-  const top = Math.min(Math.max(8, r.top - 6), vh - sh - 8);
+  const top = Math.max(8, Math.min(Math.max(8, r.top - 6), vh - sh - 8));
   sub.style.left = left + "px";
   sub.style.top = top + "px";
   sub.style.visibility = "";
@@ -100,9 +100,11 @@ function buildMenu(items, x, y){
   const menu = buildMenuEl(items);
   document.body.appendChild(menu);
   const vw = window.innerWidth, vh = window.innerHeight;
-  const mw = 200, mh = items.length * 34 + 20;
-  menu.style.left = Math.min(x, vw-mw-8) + "px";
-  menu.style.top = Math.min(y, vh-mh-8) + "px";
+  // Use the real rendered size (a tall menu on a short screen used to be pushed above
+  // the top edge); the menu scrolls inside max-height when it cannot fit at all.
+  const mw = menu.offsetWidth || 200, mh = menu.offsetHeight || (items.length * 34 + 20);
+  menu.style.left = Math.max(8, Math.min(x, vw - mw - 8)) + "px";
+  menu.style.top = Math.max(8, Math.min(y, vh - mh - 8)) + "px";
   activeCtxMenu = menu;
   const firstRow = menu.querySelector('[role="menuitem"]');
   if(firstRow) firstRow.focus();

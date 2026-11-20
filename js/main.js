@@ -25,7 +25,7 @@ function initMain(){
 
   window.addEventListener("resize", ()=>{
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(()=>{ applyIconScale(); render(); }, 120);
+    resizeTimer = setTimeout(()=>{ applyIconScale(); render(); fitWindowsToViewport(); }, 120);
   });
 
 }

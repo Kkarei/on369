@@ -57,19 +57,27 @@ function getCellSize(){
 // with zero padding — CSS padding never actually offsets them. So the gap
 // below the fixed topbar/searchbar has to be a real pixel offset applied
 // to each icon's left/top here, not padding on #gridLayer.
+// Where the icon grid begins when nothing else is above it: clear of the top bar and search bar.
+function baseGridTop(){
+  const cs = getComputedStyle(document.documentElement);
+  const topbarH = parseFloat(cs.getPropertyValue("--topbar-h")) || 44;
+  const searchH = parseFloat(cs.getPropertyValue("--searchbar-h")) || 58;
+  const safeTop = parseFloat(cs.getPropertyValue("--safe-top")) || 0;
+  return topbarH + safeTop + searchH + 22;
+}
+
 function getGridOffset(parentId){
   if(parentId !== null){
     if(widgetById(parentId)) return { top: 6, left: 8 };
     return { top: 20, left: 20 }; // matches folderBody's visual inset
   }
   const cs = getComputedStyle(document.documentElement);
-  const topbarH = parseFloat(cs.getPropertyValue("--topbar-h")) || 44;
-  const searchH = parseFloat(cs.getPropertyValue("--searchbar-h")) || 58;
-  const safeTop = parseFloat(cs.getPropertyValue("--safe-top")) || 0;
   const safeLeft = parseFloat(cs.getPropertyValue("--safe-left")) || 0;
   const isMobile = window.innerWidth <= 640;
   return {
-    top: topbarH + safeTop + searchH + 22,
+    // On a narrow screen the widgets are stacked in a column at the top, so the icon
+    // grid starts underneath them instead of sitting on top of the first widget.
+    top: baseGridTop() + (typeof narrowWidgetsExtent === "function" ? narrowWidgetsExtent() : 0),
     left: (isMobile ? 12 : 24) + safeLeft
   };
 }

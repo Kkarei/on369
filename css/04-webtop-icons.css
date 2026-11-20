@@ -2,6 +2,7 @@
   #gridLayer{
     position: relative;
     min-height: 100vh;
+    min-height: 100dvh;
   }
 
   .icon{
@@ -136,6 +137,11 @@
   .ctx-menu{
     position: fixed;
     min-width: 190px;
+    max-width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+    max-height: calc(100dvh - 16px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
     background: var(--bg-1);
     border: 1px solid var(--border);
     border-radius: 12px;

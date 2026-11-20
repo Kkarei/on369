@@ -68,6 +68,9 @@ const WALLPAPER_FIT_CSS = {
 function applyAppearance(){
   const prevBg = { img: webtop.style.backgroundImage, size: webtop.style.backgroundSize, pos: webtop.style.backgroundPosition, rep: webtop.style.backgroundRepeat };
   document.documentElement.setAttribute("data-theme", state.theme);
+  // Keep the browser/status-bar colour in step with the chosen theme.
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
+  if(themeMeta){ const bg = getComputedStyle(document.documentElement).getPropertyValue("--bg-0").trim(); if(bg) themeMeta.setAttribute("content", bg); }
   // "custom" isn't one of the CSS pattern attribute-selectors — if it's
   // selected but the image somehow went missing, fall back to the
   // app default rather than showing a blank background.

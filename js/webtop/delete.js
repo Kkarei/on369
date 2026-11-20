@@ -71,6 +71,22 @@ function deleteSelected(){
 }
 
 
+
+// Closes whatever dialogs and popups are open (used by Escape, with or without a text field focused).
+function closeLayersOnEscape(){
+  closeCtxMenu();
+  if(itemOverlay.classList.contains("open")) closeItemModal();
+  if(appPickerOverlay.classList.contains("open")) closeAppPicker();
+  if(deleteConfirmOverlay.classList.contains("open")) closeDeleteConfirm();
+  if(movePickerOverlay.classList.contains("open")) closeMovePicker();
+  if(resetConfirmOverlay.classList.contains("open")) closeResetConfirm();
+  if(importOverlay.classList.contains("open")) closeImportModal();
+  document.getElementById("settingsPop").classList.remove("open");
+  document.getElementById("calendarPop").classList.remove("open");
+  if(folderOverlay.classList.contains("open")){ folderOverlay.classList.remove("open"); currentFolderId=null; folderStack=[]; }
+}
+
+
 /* Runs once at startup (see main.js), in the original order. */
 function initWebtopDelete(){
   document.getElementById("deleteConfirmCancel").addEventListener("click", closeDeleteConfirm);
@@ -84,6 +100,10 @@ function initWebtopDelete(){
   document.addEventListener("keydown", (e)=>{
     const ae = document.activeElement;
     const typing = ae && (ae.isContentEditable || ae.tagName === "INPUT" || ae.tagName === "TEXTAREA");
+    // Escape must still close dialogs while a text field has focus (the New bookmark dialog
+    // focuses its name field as it opens, so Esc used to do nothing there). Renaming a label
+    // in place keeps its own Escape handling.
+    if(typing && e.key === "Escape" && !ae.isContentEditable){ closeLayersOnEscape(); return; }
     if(typing) return;
     if((e.key === "Delete" || e.key === "Backspace") && selected.size > 0){
       e.preventDefault();
@@ -114,15 +134,7 @@ function initWebtopDelete(){
       invertSelectionInContext(currentFolderId);
     }
     if(e.key === "Escape"){
-      closeCtxMenu();
-      if(itemOverlay.classList.contains("open")) closeItemModal();
-      if(appPickerOverlay.classList.contains("open")) closeAppPicker();
-      if(deleteConfirmOverlay.classList.contains("open")) closeDeleteConfirm();
-      if(movePickerOverlay.classList.contains("open")) closeMovePicker();
-      if(resetConfirmOverlay.classList.contains("open")) closeResetConfirm();
-      document.getElementById("settingsPop").classList.remove("open");
-      document.getElementById("calendarPop").classList.remove("open");
-      if(folderOverlay.classList.contains("open")){ folderOverlay.classList.remove("open"); currentFolderId=null; folderStack=[]; }
+      closeLayersOnEscape();
       multiSelectMode = false;
       clearSelection();
     }

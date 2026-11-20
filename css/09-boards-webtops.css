@@ -191,3 +191,30 @@
 .wap-item-row .wap-visit{ top:50%; right:8px; transform:translateY(-50%); }
 .wap-item-row > .wap-row{ padding-right:46px; }
 @media (pointer:coarse){ .wap-visit{ width:34px; height:34px; } .wap-visit svg{ width:16px; height:16px; } }
+
+/* ---------- TOUCH-SIZED CONTROLS ----------
+   On touch screens (coarse pointer) small controls get bigger hit areas so a thumb can hit them
+   reliably. Only touch devices are affected; mouse layouts are unchanged. */
+@media (pointer:coarse){
+  /* window title bar: minimise / maximise / close */
+  .oswindow-titlebar{ height:46px; }
+  .win-btn{ width:40px; height:36px; font-size:16px; }
+  .oswindow-controls{ gap:4px; }
+  /* widget header buttons (fold, settings) */
+  .widget-btn{ min-width:34px; min-height:34px; display:inline-flex; align-items:center; justify-content:center; padding:2px 6px; }
+  .widget-head{ min-height:44px; }
+  /* top bar: webtop tabs, add-webtop, clock pill */
+  .wt-tab{ min-height:32px; }
+  .wt-add{ min-width:32px; min-height:32px; }
+  #clock{ min-height:34px; align-items:center; }
+  /* segmented controls and small buttons */
+  .mode-btn{ min-height:34px; min-width:44px; }
+  .stab{ min-height:38px; }
+  .todo-filter{ min-height:34px; min-width:48px; }
+  #iconSizeDown, #iconSizeUp{ width:40px; height:40px; }
+  .cal-nav-btn, #calSettingsBtn{ width:38px; height:38px; }
+  .wap-view-btn{ min-width:38px; min-height:36px; }
+  .clockapp-style{ min-height:38px; }
+  .clockapp-check{ min-height:38px; }
+  .calapp-mon{ width:20px; height:20px; }
+}

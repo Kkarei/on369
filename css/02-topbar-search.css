@@ -3,6 +3,7 @@
     position: relative;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;   /* real visible height on phones whose address bar slides away */
     background: var(--bg-0);
     overflow: auto;
   }
@@ -266,3 +267,30 @@
   }
 
   
+
+
+/* ---------- TOP BAR ON PHONES ----------
+   The clock pill used to wrap onto two lines and the icon buttons shrank to 23px wide,
+   squeezing the webtop tabs to a sliver. Keep everything on one line, keep the
+   buttons finger-sized, and let the tabs take whatever space is left. */
+#topbar .iconbtn{ flex-shrink:0; }
+#clock{ white-space:nowrap; flex-shrink:0; }
+@media (max-width:640px){
+  .topbar-right{ gap:6px; flex-shrink:0; }
+  #clock{ padding:6px 8px; font-size:12px; }
+  #topbar .iconbtn{ width:34px; height:34px; }
+  #topbar .webtop-tabs{ flex:1 1 0; min-width:0; max-width:none; margin:0 8px; }
+  #topbar .brand{ flex-shrink:0; }
+}
+@media (max-width:520px){ #clock .date{ display:none; } }   /* time only; the date is one tap away in the calendar */
+@media (pointer:coarse){
+  #searchGo{ min-width:36px; min-height:36px; }
+}
+@media (max-width:360px){            /* very narrow phones: tighten spacing so the tabs still get room (the clock stays: it opens the date/time settings) */
+  #topbar{ padding-left:calc(10px + var(--safe-left)); padding-right:calc(10px + var(--safe-right)); }
+  .topbar-right{ gap:4px; }
+  #topbar .iconbtn{ width:32px; height:32px; }
+  #clock{ padding:6px 6px; font-size:11.5px; }
+  #topbar .webtop-tabs{ margin:0 6px; }
+  .brand-logo{ height:20px; }
+}

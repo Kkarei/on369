@@ -198,3 +198,9 @@
   /* while dragging a selection box nothing may be natively selected (it would highlight labels, links and pictures in shelves and boards) */
   body.rubber-selecting, body.rubber-selecting *{ user-select:none !important; -webkit-user-select:none !important; }
   body.rubber-selecting img{ -webkit-user-drag:none; }
+
+/* An empty shelf's hint used to sit flush against the shelf's left edge with no padding. */
+.widget .empty-hint{ position:absolute; inset:44px 12px 12px 12px; display:flex; align-items:center; justify-content:center; text-align:center; font-size:13px; color:var(--text-tertiary); pointer-events:none; }
+
+/* The "N items on webtop" line overlapped widget content on phones; it adds little there. */
+@media (max-width:640px){ #status{ display:none; } }

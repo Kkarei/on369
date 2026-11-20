@@ -44,17 +44,29 @@ function orderWidgetsForStack(list){
   return out;
 }
 
+// The widgets that take part in the phone column, already in reading order.
+function stackedWidgetList(){
+  return orderWidgetsForStack(state.icons.filter(i=> i.type === "widget" && inSpace(i) && i.kind !== "board" && !(i.kind === "group" && i.embedded)));
+}
+function stackedWidgetHeight(w){ return w.collapsed ? WIDGET_NARROW_COLLAPSED_H : (w.ph || 200); }
+
+// How far the stacked widgets push the icon grid down (0 on wide screens or with no widgets).
+function narrowWidgetsExtent(){
+  if(!isNarrowWidgetLayout()) return 0;
+  const list = stackedWidgetList();
+  if(!list.length) return 0;
+  return list.reduce((sum, w)=> sum + stackedWidgetHeight(w) + WIDGET_NARROW_GAP, 0);
+}
+
 function narrowWidgetStack(){
-  const list = orderWidgetsForStack(state.icons.filter(i=> i.type === "widget" && inSpace(i) && i.kind !== "board" && !(i.kind === "group" && i.embedded)));
+  const list = stackedWidgetList();
   const left = 8, width = Math.max(140, window.innerWidth - 16);
-  // Start where the icon grid starts: clear of the top bar and the search bar
-  // (it used to start at 12px, underneath both).
-  let top = getGridOffset(null).top;
+  // Start where the icon grid would start: clear of the top bar and the search bar.
+  let top = baseGridTop();
   const layout = new Map();
   list.forEach(w=>{
-    const h = w.collapsed ? WIDGET_NARROW_COLLAPSED_H : (w.ph || 200);
     layout.set(w.id, { left, width, top });
-    top += h + WIDGET_NARROW_GAP;
+    top += stackedWidgetHeight(w) + WIDGET_NARROW_GAP;
   });
   return layout;
 }
