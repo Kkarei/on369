@@ -64,7 +64,7 @@
   .icon-glyph{
     width: var(--icon-size);
     height: var(--icon-size);
-    border-radius: 13px;
+    border-radius: calc(var(--icon-size) * 0.23);
     display:flex; align-items:center; justify-content:center;
     background: var(--surface);
     border: 1px solid var(--border);
@@ -78,7 +78,7 @@
   .icon-glyph .letter{
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: 20px;
+    font-size: calc(var(--icon-size) * 0.36);
     color: var(--text-primary);
   }
   .icon-glyph .count-badge{
@@ -100,7 +100,7 @@
     font-size: 11.5px;
     color: var(--text-primary);
     text-align: center;
-    max-width: 92px;
+    max-width: min(92px, calc(var(--cell-w) - 8px));
     line-height: 1.25;
     padding: 2px 6px;
     border-radius: 5px;
@@ -119,7 +119,8 @@
     overflow: visible;
   }
   @media (max-width: 640px){
-    .icon-label{ font-size: 10.5px; max-width: 70px; }
+    .icon-label{ font-size: 12px; max-width: calc(var(--cell-w) - 6px); padding: 2px 3px; }
+    .icon{ gap: 7px; }
   }
 
   /* ---------- RUBBER BAND ---------- */

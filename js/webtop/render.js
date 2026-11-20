@@ -83,6 +83,18 @@ function reflowForNarrowScreen(){
 }
 
 
+// Narrow screens: if the open folder has icons placed past its (narrower) width, pack them in
+// reading order so none are off to the side. Same idea as reflowForNarrowScreen for the root.
+function reflowFolderForNarrowScreen(parentId){
+  if(parentId === null || window.innerWidth > 820) return;
+  const cols = maxColsFor(parentId), items = childrenOf(parentId);
+  if(!items.some(i=> i.x >= cols)) return;
+  items.sort((a,b)=> a.y - b.y || a.x - b.x);
+  let x = 0, y = 0;
+  items.forEach(it=>{ it.x = x; it.y = y; if(++x >= cols){ x = 0; y++; } });
+  save();
+}
+
 function render(){
   // Rebuilding the icons and widgets briefly empties the scroll area, which can
   // clamp scrollTop to 0 (the page "jumping back to the top" on any tap).
@@ -92,6 +104,7 @@ function render(){
   renderInto(gridLayer, null);
   renderWidgets();
   if(currentFolderId !== null){
+    reflowFolderForNarrowScreen(currentFolderId);
     renderInto(folderBody, currentFolderId);
   }
   if(webtop.scrollTop !== keepScroll) webtop.scrollTop = keepScroll;

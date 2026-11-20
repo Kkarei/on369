@@ -1,4 +1,4 @@
-const CACHE_NAME = "on369-v12";   // bump with each release so old files are dropped
+const CACHE_NAME = "on369-v13";   // bump with each release so old files are dropped
 
 const APP_SHELL = [
   "./",

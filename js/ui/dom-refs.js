@@ -31,12 +31,29 @@ const taskbar = document.getElementById("taskbar");
 // via getComputedStyle — the safer, already-proven pattern here is JS
 // reading the plain (non-calc) -base values and doing the multiplication
 // itself, same as how --topbar-h/--safe-top are already handled.
+// Phone-sized screens: icons are sized from the screen width, like a phone home screen, so
+// they fill the row evenly (4 across on a phone, 5 on a large one) and grow or shrink with the
+// screen instead of staying at the small fixed desktop size. Returns null on wider screens.
+function phoneIconMetrics(){
+  const vw = window.innerWidth;
+  if(vw > 640) return null;
+  const cs = getComputedStyle(document.documentElement);
+  const safe = (parseFloat(cs.getPropertyValue("--safe-left")) || 0) + (parseFloat(cs.getPropertyValue("--safe-right")) || 0);
+  const cols = vw <= 480 ? 4 : 5;
+  const cellW = Math.floor((vw - 24 - safe) / cols);          // 12px margin each side, matching getGridOffset
+  const icon = Math.max(44, Math.min(76, Math.round(cellW * 0.66)));
+  return { cellW, icon, cellH: icon + 50, avail: vw - 24 - safe };   // cellH leaves room for a two-line label under the icon
+}
+
 function applyIconScale(){
   const cs = getComputedStyle(document.documentElement);
-  const baseW = parseFloat(cs.getPropertyValue("--cell-w-base")) || 104;
-  const baseH = parseFloat(cs.getPropertyValue("--cell-h-base")) || 118;
-  const baseIcon = parseFloat(cs.getPropertyValue("--icon-size-base")) || 56;
-  const scale = state.iconScale || 1;
+  const m = phoneIconMetrics();
+  const baseW = m ? m.cellW : (parseFloat(cs.getPropertyValue("--cell-w-base")) || 104);
+  const baseH = m ? m.cellH : (parseFloat(cs.getPropertyValue("--cell-h-base")) || 118);
+  const baseIcon = m ? m.icon : (parseFloat(cs.getPropertyValue("--icon-size-base")) || 56);
+  let scale = state.iconScale || 1;
+  // On a phone never let "Larger icons" grow cells past what lets 3 fit across (they would run off the screen).
+  if(m) scale = Math.min(scale, m.avail / (3 * m.cellW));
   document.documentElement.style.setProperty("--cell-w", (baseW*scale)+"px");
   document.documentElement.style.setProperty("--cell-h", (baseH*scale)+"px");
   document.documentElement.style.setProperty("--icon-size", (baseIcon*scale)+"px");
