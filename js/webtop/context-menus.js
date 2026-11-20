@@ -127,6 +127,9 @@ function showCanvasContextMenu(x, y, parentId){
     ] },
     { label:"Refresh", icon:"refresh", action: ()=> refreshWebtop(parentId) }
   ];
+  // Only offered while the wallpaper is set to change automatically: jump to the next picture now
+  // (respects the shuffle setting and restarts the timer, same as an automatic change).
+  if(canAdvanceWallpaper()) items.push({ label:"Next background", icon:"wallpaper", action: advanceWallpaper });
   items.push("sep");
   items.push({ label: multiSelectMode ? "Exit multi-select" : "Select multiple", icon:"check", action: toggleMultiSelect });
   if(multiSelectMode){

@@ -46,6 +46,12 @@ function advanceWallpaper(){
   else next = pool[(i + 1) % pool.length];
   setWallpaper(next);
 }
+// True when "Next background" makes sense: the automatic wallpaper change is on, there is
+// more than one picture to change between, and a video wallpaper is not in use.
+function canAdvanceWallpaper(){
+  const s = state.wallpaperShow;
+  return !!(s && s.on && state.wallpaper !== "video" && wallpaperPool().length >= 2);
+}
 function tickWallpaperShow(){
   const s = state.wallpaperShow;
   if(!s.on || document.hidden || state.wallpaper === "video") return;
