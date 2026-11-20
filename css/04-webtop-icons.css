@@ -15,9 +15,11 @@
     padding-top: 10px;
     border-radius: 12px;
     cursor: default;
-    touch-action: none;
+    touch-action: pan-x pan-y;   /* a swipe that starts on an icon still scrolls the page */
+    -webkit-touch-callout: none;
     transition: left .16s cubic-bezier(.2,.8,.3,1), top .16s cubic-bezier(.2,.8,.3,1), background .12s ease;
   }
+  .icon.lifted{ transform: scale(1.06); background: var(--surface-selected); box-shadow: var(--shadow); z-index: 40; }
   .icon.dragging{ transition: none; z-index: 50; opacity: 0.92; }
   .icon.dragging .glyph-wrap{ transform: none; }
   .icon.dragging .icon-glyph{ box-shadow: var(--shadow); }
@@ -206,3 +208,8 @@
 
   .ctx-item.disabled{ opacity: .4; cursor: default; }
   .ctx-item.disabled:hover, .ctx-item.disabled:focus{ background: transparent; }
+
+@media (pointer:coarse){
+  .icon{ -webkit-user-select:none; user-select:none; }
+  .icon .icon-label[contenteditable="true"]{ -webkit-user-select:text; user-select:text; }
+}

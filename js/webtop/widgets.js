@@ -121,7 +121,42 @@ function openWidgetSettings(w, x, y){
   name.focus(); name.select();
 }
 
-function dragWidgetPart(e, onMove, onDone){
+// Touch/pen move-drags (opts.holdToDrag) only start after a short hold, so a swipe
+// that begins on a widget still scrolls the page. The corner resize handle skips
+// this: touching it is already a deliberate drag.
+function holdThenDragWidget(e, onMove, onDone, opts){
+  const sx = e.clientX, sy = e.clientY, pid = e.pointerId, target = e.target, box = opts && opts.el;
+  let armed = false, ended = false;
+  const timer = setTimeout(()=>{
+    if(ended) return;
+    armed = true; touchDragActive = true; touchHaptic();
+    if(box) box.classList.add("lifted");
+    try{ if(target.setPointerCapture) target.setPointerCapture(pid); }catch(_){}
+  }, TOUCH_DRAG_HOLD_MS);
+  function end(commit){
+    if(ended) return; ended = true;
+    clearTimeout(timer);
+    document.removeEventListener("pointermove", mv, true);
+    document.removeEventListener("pointerup", up, true);
+    document.removeEventListener("pointercancel", up, true);
+    touchDragActive = false;
+    if(box) box.classList.remove("lifted");
+    if(commit) onDone();
+  }
+  function mv(ev){
+    if(ev.pointerId !== pid) return;
+    const dx = ev.clientX - sx, dy = ev.clientY - sy;
+    if(!armed){ if(Math.abs(dx) > 8 || Math.abs(dy) > 8) end(false); return; }   // moved early: it is a scroll
+    onMove(dx, dy);
+  }
+  function up(ev){ if(ev.pointerId === pid) end(armed); }
+  document.addEventListener("pointermove", mv, true);
+  document.addEventListener("pointerup", up, true);
+  document.addEventListener("pointercancel", up, true);
+}
+
+function dragWidgetPart(e, onMove, onDone, opts){
+  if(opts && opts.holdToDrag && e.pointerType && e.pointerType !== "mouse"){ holdThenDragWidget(e, onMove, onDone, opts); return; }
   e.preventDefault();
   const sx = e.clientX, sy = e.clientY;
   // Capture the pointer so a touch drag keeps reporting to this handle even when
@@ -199,7 +234,7 @@ function renderWidgetsInner(){
     head.addEventListener("pointerdown", (e)=>{
       if(pos || e.target.closest(".widget-btn") || e.target.isContentEditable || e.button > 0) return;   // position is auto-arranged while stacked; dragging would fight it
       const x0 = w.wx, y0 = w.wy;
-      dragWidgetPart(e, (dx, dy)=>{ w.wx = Math.max(0, x0 + dx); w.wy = Math.max(0, y0 + dy); el.style.left = w.wx + "px"; el.style.top = w.wy + "px"; }, ()=>{ w.wx = Math.round(w.wx); w.wy = Math.round(w.wy); save(); });
+      dragWidgetPart(e, (dx, dy)=>{ w.wx = Math.max(0, x0 + dx); w.wy = Math.max(0, y0 + dy); el.style.left = w.wx + "px"; el.style.top = w.wy + "px"; }, ()=>{ w.wx = Math.round(w.wx); w.wy = Math.round(w.wy); save(); }, { holdToDrag:true, el });
     });
     grip.addEventListener("pointerdown", (e)=>{
       const w0 = w.pw, h0 = w.ph, stacked = !!pos;

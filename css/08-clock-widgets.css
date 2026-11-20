@@ -1,5 +1,5 @@
 /* ---------- CLOCK WIDGETS ---------- */
-.clock-widget{ cursor:grab; user-select:none; -webkit-user-select:none; touch-action:none; container-type:size; }
+.clock-widget{ cursor:grab; user-select:none; -webkit-user-select:none; touch-action:pan-x pan-y; container-type:size; }
 .clock-widget.bare{ border-color:transparent; box-shadow:none; }
 .clk-face{ position:absolute; inset:0; --a:var(--clk-accent, var(--accent)); color:var(--text-primary); }
 .clk{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }

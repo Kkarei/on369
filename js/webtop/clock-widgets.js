@@ -215,7 +215,7 @@ function renderClockWidget(w, stack){
   el.addEventListener("pointerdown", (e)=>{
     if(pos || e.target.closest(".clock-cog, .widget-grip, .clk-date, .k-nav") || e.button > 0) return;   // position is auto-arranged while stacked; dragging would fight it
     const x0 = w.wx, y0 = w.wy;
-    dragWidgetPart(e, (dx, dy)=>{ w.wx = Math.max(0, x0 + dx); w.wy = Math.max(0, y0 + dy); el.style.left = w.wx + "px"; el.style.top = w.wy + "px"; }, ()=>{ w.wx = Math.round(w.wx); w.wy = Math.round(w.wy); save(); });
+    dragWidgetPart(e, (dx, dy)=>{ w.wx = Math.max(0, x0 + dx); w.wy = Math.max(0, y0 + dy); el.style.left = w.wx + "px"; el.style.top = w.wy + "px"; }, ()=>{ w.wx = Math.round(w.wx); w.wy = Math.round(w.wy); save(); }, { holdToDrag:true, el });
   });
   grip.addEventListener("pointerdown", (e)=>{
     const w0 = w.pw, h0 = w.ph, stacked = !!pos;

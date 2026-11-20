@@ -117,13 +117,17 @@ function findFolderDropTarget(draggedItemId, container, dl, dt, skip){
 
 function wireIconEvents(el, item, parentId){
   let downX, downY, moved=false, startLeft, startTop;
+  let touchArmed = false;   // touch: this press was held long enough to pick the icon up
 
   el.addEventListener("focus", ()=>{ focusedIconId = item.id; });
 
-  el.addEventListener("pointerdown", (e)=>{
+  // The whole select/drag/drop press. Mouse calls this straight from pointerdown;
+  // touch/pen call it only once the icon has been held (see the router below),
+  // so an ordinary swipe is left alone and scrolls the page.
+  function beginIconPress(e){
     if(e.pointerType === "mouse" && e.button !== 0) return;
     if(e.target.isContentEditable) return;
-    e.stopPropagation();
+    if(e.stopPropagation) e.stopPropagation();
     const pointerType = e.pointerType || "mouse";
     const pointerId = e.pointerId;
     downX = e.clientX; downY = e.clientY; moved = false;
@@ -245,13 +249,74 @@ function wireIconEvents(el, item, parentId){
         if(deferToggleOff){ selected.delete(item.id); updateSelectionClasses(); }
         else if(collapseOnRelease && !ev.shiftKey && !ev.ctrlKey && !ev.metaKey){ selected = new Set([item.id]); updateSelectionClasses(); }
         // Touch/stylus: a tap that didn't drag opens the item directly.
-        if(pointerType === "touch" || pointerType === "pen") openItem(item);
+        // (A held-but-not-dragged press is not a tap: it opens nothing.)
+        if((pointerType === "touch" || pointerType === "pen") && !touchArmed) openItem(item);
       }
       setTimeout(()=>{ moved = false; }, 0);
     }
     document.addEventListener("pointermove", onMove, {passive:false});
     document.addEventListener("pointerup", onUp);
     document.addEventListener("pointercancel", onUp);
+  }
+
+  /* Pointer router.
+     Mouse: unchanged (press = select, drag = move).
+     Touch/pen: like a phone's home screen —
+       swipe from an icon  -> the page scrolls; nothing is selected, dragged or opened
+       quick tap           -> selects and opens it
+       hold ~0.35s, drag   -> picks the icon up and moves it (scrolling is paused while held)
+       hold ~0.6s          -> the context menu (touch-long-press.js) */
+  el.addEventListener("pointerdown", (e)=>{
+    if(e.pointerType === "mouse" || !e.pointerType){ beginIconPress(e); return; }
+    if(!e.isPrimary || e.target.isContentEditable) return;
+    e.stopPropagation();
+    const pid = e.pointerId, x0 = e.clientX, y0 = e.clientY, target = e.target;
+    let lastX = x0, lastY = y0, armed = false, scrolled = false;
+
+    const timer = setTimeout(()=>{
+      if(scrolled) return;
+      armed = true; touchArmed = true; touchDragActive = true;
+      el.classList.add("lifted"); touchHaptic();
+      beginIconPress({ pointerType: e.pointerType, pointerId: pid, clientX: lastX, clientY: lastY, button: 0, target,
+        shiftKey: false, ctrlKey: false, metaKey: false });
+    }, TOUCH_DRAG_HOLD_MS);
+
+    const stop = ()=>{
+      clearTimeout(timer);
+      document.removeEventListener("pointermove", mv, true);
+      document.removeEventListener("pointerup", up, true);
+      document.removeEventListener("pointercancel", up, true);
+    };
+    function mv(ev){
+      if(ev.pointerId !== pid) return;
+      lastX = ev.clientX; lastY = ev.clientY;
+      // Moved before the hold finished: that is a scroll gesture, so step aside.
+      if(!armed && (Math.abs(lastX - x0) > 8 || Math.abs(lastY - y0) > 8)){ scrolled = true; stop(); }
+    }
+    function up(ev){
+      if(ev.pointerId !== pid) return;
+      stop();
+      if(armed){
+        // beginIconPress's own pointerup handler finishes the drop; just clean up after it.
+        setTimeout(()=>{ touchArmed = false; touchDragActive = false; el.classList.remove("lifted"); }, 0);
+        return;
+      }
+      if(scrolled || ev.type === "pointercancel") return;     // a scroll, not a tap
+      // A real tap.
+      el.focus({ preventScroll: true });
+      if(multiSelectMode){
+        if(selected.has(item.id)) selected.delete(item.id); else selected.add(item.id);
+        selectionAnchor = { id: item.id, parentId };
+        updateSelectionClasses();
+      }else{
+        selected = new Set([item.id]); updateSelectionClasses();
+        selectionAnchor = { id: item.id, parentId };
+        openItem(item);
+      }
+    }
+    document.addEventListener("pointermove", mv, true);
+    document.addEventListener("pointerup", up, true);
+    document.addEventListener("pointercancel", up, true);
   });
 
   // Webtop/mouse: double-click opens. Touch opens on single tap (handled above).
@@ -324,6 +389,9 @@ function openItem(item){
 
 /* Runs once at startup (see main.js), in the original order. */
 function initWebtopIconEvents(){
+  // Once an icon/widget is picked up (held), dragging it must not also scroll the page.
+  document.addEventListener("touchmove", (e)=>{ if(touchDragActive && e.cancelable) e.preventDefault(); }, { passive:false });
+
   // Browsers start a native drag when you drag an <img> or selected text. That
   // cancels our pointer events mid-gesture, so the icon never gets "dropped"
   // and snaps back on the next redraw. Block it for everything on the webtop.

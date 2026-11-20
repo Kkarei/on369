@@ -78,6 +78,12 @@ function getGridOffset(parentId){
 const isCoarsePointer = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
 
 
+// Touch gestures: a swipe scrolls, a tap opens, and holding still for this long
+// "picks up" an icon/widget so the next drag moves it (like a phone home screen).
+const TOUCH_DRAG_HOLD_MS = 350;
+let touchDragActive = false;   // true only while a picked-up item is being dragged; blocks page scrolling then
+function touchHaptic(){ try{ if(navigator.vibrate) navigator.vibrate(12); }catch(e){} }
+
 let selected = new Set();
 
 let activeCtxMenu = null;

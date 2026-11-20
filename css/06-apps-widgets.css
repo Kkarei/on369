@@ -74,7 +74,7 @@
   .notes-text{ flex:1; resize:none; border:none; background:transparent; color:var(--text-primary); font-size:13.5px; line-height:1.55; font-family:inherit; padding:10px 16px 14px; outline:none; }
   .notes-hint{ margin:auto; font-size:13px; opacity:.55; }
   .widget{ position:absolute; z-index:0; display:flex; flex-direction:column; border-radius:16px; border:1px solid rgba(255,255,255,.2); box-shadow:0 8px 28px rgba(0,0,0,.22); overflow:hidden; color:var(--text-primary); }
-  .widget-head{ display:flex; align-items:center; gap:4px; padding:8px 10px; cursor:grab; user-select:none; touch-action:none; font-size:13px; font-weight:700; flex-shrink:0; }
+  .widget-head{ display:flex; align-items:center; gap:4px; padding:8px 10px; cursor:grab; user-select:none; touch-action:pan-x pan-y; font-size:13px; font-weight:700; flex-shrink:0; }
   .widget-title{ flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .widget-btn{ cursor:pointer; opacity:.75; padding:2px 6px; border-radius:6px; }
   .widget-btn:hover{ opacity:1; background:rgba(128,128,128,.25); }
@@ -439,3 +439,5 @@
 @media (pointer:coarse){
   .widget-grip{ width:30px; height:30px; }
 }
+
+.widget.lifted{ transform: scale(1.02); box-shadow: var(--shadow); z-index: 40; }
