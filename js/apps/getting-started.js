@@ -112,7 +112,12 @@ const GS_FEATURES = [
   { icon: (c)=> menuIcon("arrange"), title:"Widgets & boards", desc:"Group icons into a named shelf, or drop in a ready-made dashboard of clocks, to-dos and notes." },
   { icon: (c)=> menuIcon("calendar"), title:"Clock & calendar", desc:"A real calendar popup with time and date format and time zone control." },
   { icon: gsBackupSVG, title:"Two kinds of backup", desc:"A manual file backup, or automatic Cloud Backup tied to your email." },
-  { icon: (c)=> menuIcon("webtop"), title:"Multiple webtops", desc:"Keep separate spaces for separate parts of your life." }
+  { icon: (c)=> menuIcon("webtop"), title:"Multiple webtops", desc:"Keep separate spaces for separate parts of your life." },
+  { icon: (c)=> menuIcon("search"), title:"Command palette", desc:"Press Ctrl+K (or use the + button's menu on a phone) to jump to any icon, app, webtop or action by typing a few letters." },
+  { icon: (c)=> menuIcon("star"), title:"Most used shelf", desc:"A widget that fills itself with the icons you open most, or most recently. Add it from Add widget." },
+  { icon: clockAppSVG, title:"Timer, stopwatch & Pomodoro", desc:"The Clock app also has world clocks, a timer, a stopwatch and a Pomodoro focus timer that keep running in the background." },
+  { icon: (c)=> menuIcon("rename"), title:"Your own icons", desc:"Edit any icon and choose an emoji or upload a picture for it." },
+  { icon: (c)=> menuIcon("import"), title:"Share to on369", desc:"Install on your phone, then use Share in any browser or app to send a link straight to your webtop." }
 ];
 
 

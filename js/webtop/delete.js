@@ -75,6 +75,7 @@ function deleteSelected(){
 // Closes whatever dialogs and popups are open (used by Escape, with or without a text field focused).
 function closeLayersOnEscape(){
   closeCtxMenu();
+  if(typeof closeCommandPalette === "function") closeCommandPalette();
   if(itemOverlay.classList.contains("open")) closeItemModal();
   if(appPickerOverlay.classList.contains("open")) closeAppPicker();
   if(deleteConfirmOverlay.classList.contains("open")) closeDeleteConfirm();

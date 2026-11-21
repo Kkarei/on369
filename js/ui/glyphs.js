@@ -56,7 +56,21 @@ function pictorialGlyphHTML(color, tierUrls){
   return `<div class="glyph-wrap"><div class="icon-glyph" style="border-color:${color}55"><img src="${escapeHtmlAttr(tierUrls[0])}" alt="" data-tiers="${escapeHtmlAttr(JSON.stringify(tierUrls.slice(1)))}" data-fb-color="${escapeHtmlAttr(color)}"></div></div>`;
 }
 
+// An icon the person picked themselves (an emoji or an uploaded picture), stored in item.metadata.customIcon.
+function customGlyphHTML(item, ci){
+  const color = item.color;
+  const badge = item.type === "folder" && childrenOf(item.id).length > 0
+    ? `<span class="count-badge">${childrenOf(item.id).length > 99 ? "99+" : childrenOf(item.id).length}</span>` : "";
+  if(ci.kind === "image" && /^data:image\//i.test(ci.value)){
+    return `<div class="glyph-wrap"><div class="icon-glyph has-img" style="border-color:${color}55"><img class="custom-img" src="${escapeHtmlAttr(ci.value)}" alt="" draggable="false"></div>${badge}</div>`;
+  }
+  const multi = Array.from(ci.value).length > 1 ? " multi" : "";
+  return `<div class="glyph-wrap"><div class="icon-glyph" style="background:${color}22;border-color:${color}55"><span class="emoji-glyph${multi}">${escapeHtml(ci.value)}</span></div>${badge}</div>`;
+}
+
 function glyphFor(item){
+  const ci = item.metadata && item.metadata.customIcon;
+  if(ci && ci.value && item.type !== "widget" && (ci.kind === "emoji" || ci.kind === "image")) return customGlyphHTML(item, ci);
   if(item.type === "folder"){
     const count = childrenOf(item.id).length;
     const badge = count > 0 ? `<span class="count-badge">${count > 99 ? "99+" : count}</span>` : "";
@@ -130,6 +144,8 @@ const MENU_ICON_PATHS = {
   tag: `<path d="M20.6 12.6 12 21.2a2 2 0 0 1-2.8 0l-6.4-6.4a2 2 0 0 1 0-2.8L11.4 3.4A2 2 0 0 1 12.8 3H19a2 2 0 0 1 2 2v6.2a2 2 0 0 1-.4 1.4Z"></path><circle cx="15" cy="9" r="1.5"></circle>`,
   refresh: `<path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M3 16v5h5"></path><path d="M16 3h5v5"></path>`,
   check: `<rect x="3" y="3" width="18" height="18" rx="4"></rect><path d="m8 12 3 3 6-6"></path>`,
+  search: `<circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path>`,
+  star: `<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3z"></path>`,
   wallpaper: `<rect x="3" y="4" width="18" height="16" rx="2"></rect><circle cx="9" cy="10" r="1.6"></circle><path d="m21 16-5-5-8 8"></path>`
 };
 

@@ -372,6 +372,7 @@ function updateFolderBackButton(){
 
 
 function openItem(item){
+  if(typeof recordOpen === "function") recordOpen(item);   // feeds "Most used" and the command palette
   if(item.type === "folder"){
     if(currentFolderId !== null) folderStack.push(currentFolderId); // drilling deeper from an already-open folder
     currentFolderId = item.id;

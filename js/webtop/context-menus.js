@@ -129,6 +129,7 @@ function showCanvasContextMenu(x, y, parentId){
   ];
   // Only offered while the wallpaper is set to change automatically: jump to the next picture now
   // (respects the shuffle setting and restarts the timer, same as an automatic change).
+  items.push({ label:"Command palette…", icon:"search", hint:"Ctrl+K", action: ()=> openCommandPalette() });
   if(canAdvanceWallpaper()) items.push({ label:"Next background", icon:"wallpaper", action: advanceWallpaper });
   items.push("sep");
   items.push({ label: multiSelectMode ? "Exit multi-select" : "Select multiple", icon:"check", action: toggleMultiSelect });
@@ -152,6 +153,7 @@ function showCanvasContextMenu(x, y, parentId){
       { label:"Shelf (group icons)", icon:"grid", action: ()=> openWidgetSettings(addWidget(wx, wy, []), x, y) },
       { label:"Clock", icon:"clock", action: ()=> openClockSettings(addClockWidget(wx, wy), x, y) },
       { label:"Calendar", icon:"calendar", action: ()=> openClockSettings(addCalendarWidget(wx, wy), x, y) },
+      { label:"Most used", icon:"star", hint:"Auto-filled", action: ()=> openRecentsSettings(addRecentsWidget(wx, wy), x, y) },
       { label:"Board (presets)\u2026", icon:"grid", action: ()=> openBoardPresetPicker({ title:"Add a board", onPick: (p)=> startAddBoard(p) }) }
     ] });
   }

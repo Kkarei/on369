@@ -206,12 +206,13 @@ function renderWidgets(){
 
 function renderWidgetsInner(){
   gridLayer.querySelectorAll(".widget").forEach(n=> n.remove());
-  clockUpdaters.clear();
+  clockUpdaters.clear(); recentsUpdaters.clear();
   const narrow = isNarrowWidgetLayout(), stack = narrow ? narrowWidgetStack() : null;
   // boards are drawn last so they sit at the very back; shelves, clocks and icons stay on top of them
   state.icons.filter(i=> i.type === "widget" && inSpace(i)).sort((a, b)=> (a.kind === "board") - (b.kind === "board")).forEach(w=>{
     if(w.kind === "group" && w.embedded) return;
     if(w.kind === "clock" || w.kind === "calendar"){ renderClockWidget(w, stack); return; }
+    if(w.kind === "recents"){ renderRecentsWidget(w, stack); return; }
     if(w.kind === "board"){ renderBoardWidget(w); return; }
     const hex = /^#[0-9a-f]{6}$/i.test(w.color) ? w.color : COLORS[0];
     const n = parseInt(hex.slice(1), 16), r = n >> 16 & 255, g = n >> 8 & 255, b = n & 255;

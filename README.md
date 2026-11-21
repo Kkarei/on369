@@ -17,6 +17,12 @@ ON369 goes beyond being a bookmark manager. It transforms the way you organize, 
 - **Visual Organization** — Organize your digital resources in a way that suits your preferences and workflow.
 - **Quick Navigation** — Open your favourite websites and tools directly from your workspace.
 - **Web-Based Access** — Use your webtop through a browser without installing a traditional desktop application.
+- **Command Palette** — Press `Ctrl+K` (`Cmd+K` on Mac), or open it from the + menu on a phone, to jump to any icon, app, webtop, theme or action by typing a few letters.
+- **Most Used Shelf** — A widget that fills itself with the icons you open most or most recently. The history stays on your device.
+- **Clock App** — World clocks, a timer, a stopwatch and a Pomodoro focus timer. Timers keep running (with a sound, vibration and notification) even when the window is closed.
+- **Custom Icons** — Edit any icon and choose an emoji or upload your own picture.
+- **Share to on369** — Install on your phone and use Share in any app to send a link to your webtop. In any browser you can also open `<your on369 address>/?url=<link>&title=<name>`; for a one-click bookmarklet use:
+  `javascript:(function(){location.href='<your on369 address>/?url='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title)})()`
 
 ## Advantages of Using ON369
 

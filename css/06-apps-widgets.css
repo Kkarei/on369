@@ -441,3 +441,12 @@
 }
 
 .widget.lifted{ transform: scale(1.02); box-shadow: var(--shadow); z-index: 40; }
+
+/* ---------- "Most used" shelf ---------- */
+.recents-widget{ display:flex; flex-direction:column; }
+.recents-widget .rw-body{ flex:1; min-height:0; overflow:auto; display:grid; grid-template-columns:repeat(auto-fill, minmax(72px, 1fr)); align-content:start; gap:4px; padding:4px 8px 10px; }
+.rw-item{ --icon-size:44px; background:none; border:none; color:inherit; font:inherit; display:flex; flex-direction:column; align-items:center; gap:4px; padding:6px 2px; border-radius:12px; cursor:pointer; min-width:0; touch-action:pan-x pan-y; }
+.rw-item:hover, .rw-item:focus-visible{ background:var(--surface); outline:none; }
+.rw-item .icon-glyph{ margin:0; }
+.rw-label{ font-size:11.5px; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text-secondary); }
+.rw-empty{ grid-column:1 / -1; text-align:center; color:var(--text-tertiary); font-size:12.5px; padding:22px 8px; }

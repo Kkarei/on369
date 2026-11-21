@@ -8,9 +8,11 @@ function initMain(){
   let finished = false;
   const showApp = ()=>{
     applyAppearance(); applyChromeVisibility(); applyHideIcons(); applyIconScale(); applyUserNote(); updateClipFillToggle(); renderWebtopTabs(); tickClock(); render();
+    const shared = takeSharedLink();     // a link shared to on369 (or ?url=...): offer to add it
     if(sess && sess.needsResolve) AppManager.launch("cloud", { title:"Cloud Backup", color: COLORS[1] });
-    else if(!state.gettingStartedDismissed) AppManager.launch("getting-started", { title:"Getting Started", color: COLORS[1] });
+    else if(!state.gettingStartedDismissed && !shared) AppManager.launch("getting-started", { title:"Getting Started", color: COLORS[1] });
     cloudBaseline(); undoReset();
+    if(shared && !(sess && sess.needsResolve)) openSharedLink(shared);
   };
   // Loading can be slow on a cold start. Say so, and never guess: nothing is written until it really finishes.
   const slow = setTimeout(()=>{ if(!finished) showAppBanner("loading", "Still loading your data\u2026 your changes will be saved once it finishes."); }, 5000);
@@ -48,6 +50,7 @@ initServicesClipboardUrl();
 initStatePersistence();
 initWebtopWebtops();
 initUiModals();
+initUiCommandPalette();
 initWindowsWindowManager();
 initUiAppPicker();
 initServicesBookmarkImport();
