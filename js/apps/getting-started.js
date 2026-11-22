@@ -113,10 +113,16 @@ const GS_FEATURES = [
   { icon: (c)=> menuIcon("calendar"), title:"Clock & calendar", desc:"A real calendar popup with time and date format and time zone control." },
   { icon: gsBackupSVG, title:"Two kinds of backup", desc:"A manual file backup, or automatic Cloud Backup tied to your email." },
   { icon: (c)=> menuIcon("webtop"), title:"Multiple webtops", desc:"Keep separate spaces for separate parts of your life." },
+  { icon: (c)=> menuIcon("webtop"), title:"Starter webtops", desc:"Tap + next to the tabs and pick Student, Developer, Designer, Work, Writer and more: a ready board with a tidy shelf of real apps from the catalog." },
   { icon: (c)=> menuIcon("search"), title:"Command palette", desc:"Press Ctrl+K (or use the + button's menu on a phone) to jump to any icon, app, webtop or action by typing a few letters." },
   { icon: (c)=> menuIcon("star"), title:"Most used shelf", desc:"A widget that fills itself with the icons you open most, or most recently. Add it from Add widget." },
   { icon: clockAppSVG, title:"Timer, stopwatch & Pomodoro", desc:"The Clock app also has world clocks, a timer, a stopwatch and a Pomodoro focus timer that keep running in the background." },
   { icon: (c)=> menuIcon("rename"), title:"Your own icons", desc:"Edit any icon and choose an emoji or upload a picture for it." },
+  { icon: (c)=> menuIcon("webtop"), title:"Starter templates", desc:"Press + next to the webtop tabs and tap Student, Developer, Designer, Work, Writer and more: a ready-made webtop with tidy widgets and a shelf of apps." },
+  { icon: (c)=> menuIcon("lock"), title:"Private webtops", desc:"Right-click a webtop tab and choose Set a PIN. Its icons stay hidden from search and the lock screen covers it until you enter the PIN." },
+  { icon: (c)=> menuIcon("grid"), title:"More widgets", desc:"Add a to-do list that shares your Todo app, a countdown, a habit tracker, news headlines, a weather forecast, or pin any note as a widget." },
+  { icon: linkCheckerSVG, title:"Link checker", desc:"Find bookmarks whose websites have disappeared, then tidy them up in one go." },
+  { icon: (c)=> menuIcon("export"), title:"Safer backups", desc:"Protect backup files, and your cloud backup, with a passphrase only you know. A reminder nudges you when it's time to back up." },
   { icon: (c)=> menuIcon("import"), title:"Share to on369", desc:"Install on your phone, then use Share in any browser or app to send a link straight to your webtop." }
 ];
 

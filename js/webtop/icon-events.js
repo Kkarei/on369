@@ -221,8 +221,10 @@ function wireIconEvents(el, item, parentId){
           // moved between webtop and a widget
         }else{
           const left = startLeft + lastDx, top = startTop + lastDy;
-          const cell = getCellSize();
+          const cell = getCellSize(parentId);
           const offset = getGridOffset(parentId);
+          const dropWidget = parentId !== null ? widgetById(parentId) : null;
+          if(dropWidget && dropWidget.autoFlow) dropWidget.autoFlow = false;     // you arranged it yourself: stop re-packing it
           const gx = Math.min(Math.max(0, Math.round((left - offset.left) / cell.w)), maxColsFor(parentId) - 1);
           const gy = Math.max(0, Math.round((top - offset.top) / cell.h));
           const multi = selected.has(item.id) && selected.size > 1;

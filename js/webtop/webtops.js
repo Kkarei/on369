@@ -13,7 +13,8 @@ function normalizeWebtops(list, active){
   (Array.isArray(list) ? list : []).forEach(w=>{
     if(!w || typeof w.id !== "string" || seen.has(w.id)) return;
     seen.add(w.id);
-    out.push({ id: w.id, name: String(w.name || "Webtop").slice(0, 24), icon: String(w.icon || "\u2B50").slice(0, 4), wallpaper: typeof w.wallpaper === "string" ? w.wallpaper : null });
+    out.push({ id: w.id, name: String(w.name || "Webtop").slice(0, 24), icon: String(w.icon || "\u2B50").slice(0, 4), wallpaper: typeof w.wallpaper === "string" ? w.wallpaper : null,
+      ...(w.lock && typeof w.lock.salt === "string" && typeof w.lock.hash === "string" ? { lock:{ salt: w.lock.salt, hash: w.lock.hash, iter: Number(w.lock.iter) || 150000 } } : {}) });
   });
   if(!out.length) out.push({ id:"main", name:"Webtop", icon:"\u{1F3E0}", wallpaper:null });
   return { webtops: out, activeWebtop: out.some(w=> w.id === active) ? active : out[0].id };
@@ -38,6 +39,7 @@ function webtopSync(){
 
 function switchWebtop(id){
   if(id === state.activeWebtop || !state.webtops.some(w=> w.id === id)) return;
+  if(webtopNeedsUnlock(id)){ promptUnlock(id).then(ok=>{ if(ok) switchWebtop(id); }); return; }   // a private webtop asks for its PIN first
   webtopSync();
   state.activeWebtop = id;
   const w = activeWebtopObj();
@@ -102,7 +104,9 @@ function renderWebtopTabs(){
     b.setAttribute("role", "tab"); b.setAttribute("aria-selected", String(w.id === state.activeWebtop)); b.dataset.id = w.id; b.title = w.name;
     const ic = document.createElement("span"); ic.className = "wt-ico"; ic.textContent = w.icon;
     const nm = document.createElement("span"); nm.className = "wt-name"; nm.textContent = w.name;
-    b.append(ic, nm); webtopTabsEl.appendChild(b);
+    b.append(ic, nm);
+    if(w.lock){ const lk = document.createElement("span"); lk.className = "wt-lock"; lk.textContent = "\u{1F512}"; lk.setAttribute("aria-label", "Private"); b.appendChild(lk); }
+    webtopTabsEl.appendChild(b);
   });
   const add = document.createElement("button"); add.type = "button"; add.className = "wt-add"; add.title = "New webtop"; add.setAttribute("aria-label", "New webtop"); add.textContent = "+";
   webtopTabsEl.appendChild(add);
@@ -115,30 +119,30 @@ function openWebtopMenu(id, x, y){
     { label:"Move left", icon:"chevron", disabled: i === 0, action: ()=> moveWebtop(id, -1) },
     { label:"Move right", icon:"chevron", disabled: i === state.webtops.length - 1, action: ()=> moveWebtop(id, 1) },
     "sep",
+    ...(w.lock
+      ? [{ label:"Lock now", icon:"lock", action: ()=> lockWebtopNow(id) }, { label:"Change PIN\u2026", icon:"lock", action: ()=> promptChangePin(id) }, { label:"Remove PIN\u2026", icon:"lock", action: ()=> promptRemovePin(id) }]
+      : [{ label:"Set a PIN\u2026", icon:"lock", hint:"Make it private", action: ()=> promptSetPin(id) }]),
+    "sep",
     { label:"Delete webtop\u2026", icon:"delete", danger:true, disabled: state.webtops.length < 2, action: ()=> deleteWebtop(id) }
   ], x, y);
 }
 
-// "New webtop" / "Edit webtop" dialog: a name, an icon, and (for new ones) what to start with.
-// Materializes a board preset's `apps` (ids from js/data/app-catalog.js) as
-// real webapp icons on the new webtop's grid. The board's own "links" tiles
-// stay as shortcuts inside that widget; this is what actually puts icons on
-// the webtop itself — the gap presets used to have (widgets only, nothing to
-// launch). Unknown ids are skipped by catalogApps(), never thrown.
-function addPresetApps(preset){
-  if(!Array.isArray(preset.apps) || !preset.apps.length) return;
-  if(typeof catalogApps !== "function") return;
-  catalogApps(preset.apps).forEach(app=>{
-    const slot = nextFreeSlot(null);
-    const item = createItem("webapp", {
-      label: app.label, url: app.url, color: COLORS[state.icons.length % COLORS.length],
-      x: slot.x, y: slot.y, parentId: null, space: state.activeWebtop
-    });
-    if(!item) return;
-    state.icons.push(item);
-    if(typeof tryEnrichWebApp === "function") tryEnrichWebApp(item);
-  });
+// Templates: a board preset (js/webtop/boards.js) plus its catalog apps (js/data/app-catalog.js), shown as one-tap
+// cards in the New webtop dialog below. The apps go into the board's labelled "apps" shelf, never loose on top of the tiles.
+function addPresetApps(preset){      // kept for older callers: fills the current webtop's board with the preset's apps
+  const board = state.icons.find(i=> i.type === "widget" && i.kind === "board" && inSpace(i));
+  if(board) fillPresetApps(board, preset);
   save(); render();
+}
+
+// One tap: makes a webtop from a template (a board preset), named and iconed after it unless you typed your own name.
+function createWebtopFromTemplate(preset, typedName){
+  const id = addWebtop((typedName || "").trim() || preset.name, preset.emoji || "\u2B50");
+  switchWebtop(id);
+  const board = addBoardWidget(60, 130, preset);
+  fillPresetApps(board, preset);
+  save(); render();
+  return id;
 }
 
 function openWebtopDialog(editId){
@@ -154,27 +158,50 @@ function openWebtopDialog(editId){
     b.addEventListener("click", ()=>{ icon = e; icons.querySelectorAll("button").forEach(x=> x.classList.toggle("on", x === b)); });
     icons.appendChild(b);
   });
-  let start = null;
-  if(!editing){
-    start = document.createElement("select"); start.className = "fit-select";
-    start.innerHTML = '<option value="">Start with an empty webtop</option>';
-    allBoardPresets().filter(p=> p.id !== "blank").forEach(p=>{ const o = document.createElement("option"); o.value = p.id; o.textContent = `Start with a board: ${p.name}`; start.appendChild(o); });
-  }
   const done = ()=> back.remove();
-  const ok = document.createElement("button"); ok.className = "primary"; ok.textContent = editing ? "Save" : "Create webtop";
+  const ok = document.createElement("button"); ok.className = "primary"; ok.textContent = editing ? "Save" : "Create empty webtop";
   const no = document.createElement("button"); no.textContent = "Cancel"; no.addEventListener("click", done);
   const submit = ()=>{
     const nm = name.value.trim().slice(0, 24);
     if(editing){ editing.name = nm || editing.name; editing.icon = icon; renderWebtopTabs(); save(); done(); return; }
-    const id = addWebtop(nm, icon); const preset = start.value ? allBoardPresets().find(p=> p.id === start.value) : null;
+    const id = addWebtop(nm, icon);
     done(); switchWebtop(id);
-    if(preset){ addBoardWidget(60, 130, preset); addPresetApps(preset); }
   };
   ok.addEventListener("click", submit);
   name.addEventListener("keydown", (e)=>{ if(e.key === "Enter") submit(); else if(e.key === "Escape") done(); });
   back.addEventListener("pointerdown", (e)=>{ if(e.target === back) done(); });
-  box.append(title, name, icons); if(start) box.appendChild(start); box.append(ok, no);
-  back.appendChild(box); document.body.appendChild(back); name.focus(); name.select();
+
+  if(editing){
+    box.append(title, name, icons, ok, no);
+    back.appendChild(box); document.body.appendChild(back); name.focus(); name.select();
+    return;
+  }
+
+  // New webtop: a gallery of one-tap templates first, with "Empty" revealing the name/icon form.
+  const lead = document.createElement("div"); lead.className = "wt-tpl-lead"; lead.textContent = "Start from a template, or begin empty.";
+  const grid = document.createElement("div"); grid.className = "wt-templates"; grid.setAttribute("role", "list");
+  const card = (emoji, nm, desc, tag, onTap)=>{
+    const b = document.createElement("button"); b.type = "button"; b.className = "wt-template"; b.setAttribute("role", "listitem");
+    const e = document.createElement("span"); e.className = "wt-tpl-emoji"; e.textContent = emoji;
+    const t = document.createElement("span"); t.className = "wt-tpl-name"; t.textContent = nm;
+    const d = document.createElement("span"); d.className = "wt-tpl-desc"; d.textContent = desc;
+    b.append(e, t, d);
+    if(tag){ const g = document.createElement("span"); g.className = "wt-tpl-tag"; g.textContent = tag; b.appendChild(g); }
+    b.addEventListener("click", onTap); return b;
+  };
+  const form = document.createElement("div"); form.className = "wt-empty-form"; form.hidden = true;
+  form.append(name, icons, ok);
+  grid.appendChild(card("\u2795", "Empty", "A blank webtop to arrange yourself", "", ()=>{ form.hidden = false; grid.querySelectorAll(".wt-template").forEach(x=> x.classList.toggle("on", x.querySelector(".wt-tpl-name").textContent === "Empty")); name.focus(); }));
+  allBoardPresets().filter(p=> p.id !== "blank").forEach(p=>{
+    const count = Array.isArray(p.apps) ? p.apps.length : 0;
+    grid.appendChild(card(p.emoji || "\u{1F9E9}", p.name, p.desc || "", count ? count + " apps" : "", ()=>{
+      const typed = form.hidden ? "" : name.value;   // a name typed under "Empty" is used; otherwise the template's own
+      done(); createWebtopFromTemplate(p, typed);
+    }));
+  });
+  box.append(title, lead, grid, form, no);
+  back.appendChild(box); document.body.appendChild(back);
+  grid.querySelector(".wt-template").focus();
 }
 
 /* Runs once at startup (see main.js). */

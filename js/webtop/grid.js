@@ -14,7 +14,7 @@ function occupied(parentId, x, y, excludeId){
 
 
 function maxColsFor(parentId){
-  const cell = getCellSize();
+  const cell = getCellSize(parentId);
   if(parentId === null){
     // Same side margins getGridOffset uses (12px each on a phone, 24px otherwise, plus safe areas).
     const cs = getComputedStyle(document.documentElement);
@@ -23,7 +23,7 @@ function maxColsFor(parentId){
     return Math.max(3, Math.floor((window.innerWidth - margin) / cell.w));
   }
   const wdg = widgetById(parentId);
-  if(wdg && wdg.embedded){ const c = containerFor(parentId); return Math.max(1, Math.floor(((c && c.clientWidth ? c.clientWidth : 240) - 16) / cell.w)); }
+  if(wdg && wdg.embedded){ const L = embeddedShelfLayout(parentId); if(L) return L.cols; const c = containerFor(parentId); return Math.max(1, Math.floor(((c && c.clientWidth ? c.clientWidth : 240) - 16) / cell.w)); }
   if(wdg) return Math.max(1, Math.floor((wdg.pw - 16) / cell.w));
   // Folder panel: 560px wide at most, and never wider than 92% of the screen. Use its real width
   // once it is open (the old fixed 520px put icons past the edge on phones).

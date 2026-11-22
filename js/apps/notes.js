@@ -18,8 +18,10 @@ async function renderNotesApp(body, api){
   try{ const v = await api.storage.get("notes"); if(Array.isArray(v)) notes = v; }catch(e){ console.warn("on369: notes load failed", e); }
   notes.sort((a,b)=> b.updated - a.updated);
   activeId = notes.length ? notes[0].id : null;
+  if(window.notesOpenRequest){ if(notes.some(n=> n.id === window.notesOpenRequest)) activeId = window.notesOpenRequest; window.notesOpenRequest = null; }
+  let previewOn = false;
 
-  const persist = ()=> api.storage.set("notes", notes).catch(e=> console.warn("on369: notes save failed", e));
+  const persist = ()=> api.storage.set("notes", notes).then(()=> api.emit("notes-changed", {})).catch(e=> console.warn("on369: notes save failed", e));
   const active = ()=> notes.find(n=> n.id === activeId);
 
   function renderList(){
@@ -51,9 +53,20 @@ async function renderNotesApp(body, api){
     const bar = document.createElement("div"); bar.className = "notes-bar";
     const title = document.createElement("input"); title.className = "notes-title"; title.placeholder = "Title"; title.value = n.title;
     const del = document.createElement("div"); del.className = "notes-del"; del.textContent = "Delete";
-    bar.append(title, del);
-    const text = document.createElement("textarea"); text.className = "notes-text"; text.placeholder = "Start writing…"; text.value = n.text;
-    mainEl.append(bar, text);
+    const mode = document.createElement("div"); mode.className = "notes-del notes-mode"; mode.textContent = previewOn ? "Edit" : "Preview"; mode.title = "Switch between writing and the formatted view (Markdown)";
+    const pin = document.createElement("div"); pin.className = "notes-del notes-pin"; pin.textContent = "Pin"; pin.title = "Show this note as a widget on your webtop";
+    bar.append(title, mode, pin, del);
+    const text = document.createElement("textarea"); text.className = "notes-text"; text.placeholder = "Start writing… (Markdown works: # heading, **bold**, - list, - [ ] task)"; text.value = n.text;
+    const preview = document.createElement("div"); preview.className = "notes-preview md";
+    if(previewOn){ preview.innerHTML = renderMarkdown(n.text || "") || '<p class="notes-hint">Nothing to preview yet.</p>'; mainEl.append(bar, preview); }
+    else mainEl.append(bar, text);
+    mode.addEventListener("click", ()=>{ flush(); previewOn = !previewOn; renderEditor(); });
+    pin.addEventListener("click", ()=>{
+      flush();
+      const at = freeWidgetSpot(280, 240);
+      addTileWidget("pinnote", at.x, at.y, { noteId: n.id }, n.title || "Pinned note");
+      showAppBanner("pinned", "Pinned to your webtop.", [{ label:"OK", fn: ()=>{} }], 3500);
+    });
     const changed = ()=>{
       n.title = title.value; n.text = text.value; n.updated = Date.now();
       clearTimeout(saveTimer); saveTimer = setTimeout(()=>{ saveTimer = null; persist(); }, 400);
@@ -77,7 +90,18 @@ async function renderNotesApp(body, api){
     const t = mainEl.querySelector(".notes-title"); if(t) t.focus();
   });
   searchEl.addEventListener("input", renderList);
+  const offOpen = api.on("notes-open", (ev)=>{                   // "open this note" from a pinned widget or the command palette
+    if(!body.isConnected){ offOpen(); return; }
+    if(ev && notes.some(n=> n.id === ev.id)){ flush(); activeId = ev.id; searchEl.value = ""; renderList(); renderEditor(); }
+  });
   renderList(); renderEditor();
+}
+
+// Opens the Notes app showing one particular note.
+function openNoteById(id){
+  window.notesOpenRequest = id;
+  AppManager.launch("notes", { title:"Notes", color: COLORS[3] });
+  EventBus.emit("notes-open", { id });
 }
 
 

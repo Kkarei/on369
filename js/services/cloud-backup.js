@@ -15,6 +15,31 @@ const cloudConfigured = ()=> !/YOUR-/.test(SUPABASE_URL + SUPABASE_ANON_KEY);
 
 let sess = null, cloudTimer = null;
 
+/* Optional end-to-end encryption of the cloud copy. The passphrase lives only in memory (never stored or sent),
+   so after a reload it has to be entered again before backups can continue. See js/services/backup-crypto.js. */
+let cloudPass = null;
+const cloudEncOn = ()=>{ try{ return localStorage.getItem("on369.cloudEnc") === "1"; }catch(_){ return false; } };
+function setCloudEnc(on){ try{ on ? localStorage.setItem("on369.cloudEnc", "1") : localStorage.removeItem("on369.cloudEnc"); }catch(_){} }
+// The readable backup inside a cloud row, asking for the passphrase if the row is encrypted.
+async function cloudDataOf(row){
+  const d = row && row.data;
+  if(!bcIsBox(d)) return d;
+  let plain = null;
+  const attempt = async (p)=>{ try{ plain = await bcDecrypt(d, p); cloudPass = p; setCloudEnc(true); return true; }catch(_){ return false; } };
+  if(cloudPass && await attempt(cloudPass)) return plain;
+  const r = await passphraseDialog({ title:"Unlock your cloud backup", message:"This backup is encrypted. Enter its passphrase.", okLabel:"Unlock",
+    check: async (v)=> (await attempt(v.pass)) ? "" : "That passphrase isn't right." });
+  if(!r) throw new Error("Cancelled. Nothing was changed.");
+  return plain;
+}
+// After a reload the passphrase is gone: ask for it (checked against the cloud copy) so automatic backups can resume.
+async function cloudUnlockPassphrase(){
+  const row = await cloudFetch();
+  if(row && bcIsBox(row.data)){ await cloudDataOf(row); }
+  else{ const p = await bcChoosePassphrase("Choose a passphrase", "There is no encrypted cloud copy yet. Choose the passphrase to protect it."); if(!p) throw new Error("Cancelled."); cloudPass = p; }
+  hideAppBanner("cloudpass"); cloudSchedule();
+}
+
 function saveSess(){ try{ sess ? localStorage.setItem(CLOUD_KEY, JSON.stringify(sess)) : localStorage.removeItem(CLOUD_KEY); }catch(_){} }
 
 
@@ -67,12 +92,20 @@ async function cloudSnapshot(full){
 async function cloudPush(force){
   if(Store.isBlocked()) throw new Error("Your data isn't ready yet, so nothing was backed up.");
   const data = await cloudSnapshot(), now = new Date().toISOString(), count = data.items.length;
+  let payload = data;
+  if(cloudEncOn()){
+    if(!cloudPass){
+      showAppBanner("cloudpass", "Your cloud backup is encrypted. Enter your passphrase to keep backing up.", [{ label:"Enter passphrase", fn: ()=> cloudUnlockPassphrase().catch(()=>{}) }]);
+      throw new Error("Enter your backup passphrase to back up.");
+    }
+    payload = await bcEncrypt(data, cloudPass); hideAppBanner("cloudpass");
+  }
   // Automatic backups refuse to replace a much bigger cloud copy with a much smaller local one: that is what a lost-data bug looks like.
   if(!force && sess.lastCount >= 6 && count < sess.lastCount * 0.5){
     showAppBanner("cloudwarn", `Automatic backup is paused: this device has ${count} items, but your last cloud backup had ${sess.lastCount}. Open Cloud Backup to choose what to do.`, [{ label:"Open Cloud Backup", keep:true, fn: ()=> AppManager.launch("cloud", { title:"Cloud Backup", color: COLORS[1] }) }]);
     throw new Error("Automatic backup is paused because your data here is much smaller than your last backup.");
   }
-  await sb("/rest/v1/backups?on_conflict=user_id", { method:"POST", token: await cloudToken(), headers:{ Prefer:"resolution=merge-duplicates,return=minimal" }, body:{ user_id: sess.user_id, data, updated_at: now } });
+  await sb("/rest/v1/backups?on_conflict=user_id", { method:"POST", token: await cloudToken(), headers:{ Prefer:"resolution=merge-duplicates,return=minimal" }, body:{ user_id: sess.user_id, data: payload, updated_at: now } });
   sess.synced = true; sess.needsResolve = false; sess.lastSync = now; sess.lastSig = sigOf(data); sess.lastCount = count; hideAppBanner("cloudwarn"); saveSess();
   return data.imagesSkipped;
 }
@@ -140,7 +173,7 @@ async function cloudRestoreEarlier(){
   if(id == null) return;
   const got = await sb(`/rest/v1/backup_history?select=data&id=eq.${id}`, { token: await cloudToken() });
   if(!got || !got[0]) throw new Error("That copy couldn't be loaded.");
-  await cloudRestore(got[0].data);
+  await cloudRestore(await cloudDataOf(got[0]));
 }
 async function cloudDeleteData(){
   await sb(`/rest/v1/backups?user_id=eq.${sess.user_id}`, { method:"DELETE", token: await cloudToken() });
@@ -201,9 +234,9 @@ function renderCloudApp(body){
       root.appendChild(el("p", "", "Cloud backup isn't set up yet. Add your Supabase project URL and public key at the top of the Cloud Backup section in the code."));
     }else if(conflict){
       root.appendChild(el("p", "", "A backup from " + when(conflict.updated_at) + " already exists for " + sess.email + ". Which copy do you want to use?"));
-      root.appendChild(btn("Restore cloud copy", ()=> cloudRestore(conflict.data), "primary"));
+      root.appendChild(btn("Restore cloud copy", async ()=> cloudRestore(await cloudDataOf(conflict)), "primary"));
       root.appendChild(btn("Keep this device's copy", async ()=>{ await cloudPush(true); conflict = null; msg = "This device's copy is now your cloud backup."; }));
-      root.appendChild(el("p", "cloud-note", "Restoring replaces the webtop on this device. Keeping this device's copy overwrites the cloud backup."));
+      root.appendChild(el("p", "cloud-note", "Restoring replaces the webtop on this device. Keeping this device's copy overwrites the cloud backup." + (bcIsBox(conflict.data) ? " The cloud copy is encrypted; if you keep this device's copy it will be replaced by an unencrypted one unless encryption is on here." : "")));
     }else if(sess && sess.needsResolve && !conflict){
       root.appendChild(el("p", "", "Checking for your backup\u2026"));
     }else if(!sess){
@@ -211,13 +244,21 @@ function renderCloudApp(body){
         btn("Continue with Google", async ()=> cloudSignInGoogle(), "primary"));
       if(cloudAuthError){ msg = cloudAuthError; err = true; cloudAuthError = ""; }
     }else{
-      root.append(el("p", "", "Connected as " + sess.email), el("p", "cloud-note", "Last backup: " + when(sess.lastSync) + (cloudMode() === "auto" ? ". Changes back up automatically." : ". Manual mode: press Back up now to save changes.")),
+      root.append(el("p", "", "Connected as " + sess.email), ...(cloudEncOn() ? [el("p", "cloud-note", "\u{1F512} Encrypted with your passphrase" + (cloudPass ? "." : ". Enter it to resume backups."))] : []), el("p", "cloud-note", "Last backup: " + when(sess.lastSync) + (cloudMode() === "auto" ? ". Changes back up automatically." : ". Manual mode: press Back up now to save changes.")),
         btn("Back up now", async ()=>{ const skipped = await cloudPush(true); msg = skipped ? "Backed up (large images were left out)." : "Backed up."; }, "primary"),
+        ...(cloudEncOn()
+          ? [ ...(cloudPass ? [] : [btn("Enter passphrase to resume backups", async ()=>{ await cloudUnlockPassphrase(); msg = "Passphrase accepted. Backups can continue."; })]),
+              btn("Turn off encryption", async ()=>{ if(confirm("Turn off encryption? Your cloud copy will be replaced by an unencrypted one.")){ setCloudEnc(false); cloudPass = null; hideAppBanner("cloudpass"); await cloudPush(true); msg = "Encryption is off. Your cloud copy is no longer encrypted."; } }) ]
+          : [btn("Encrypt my cloud backup\u2026", async ()=>{
+              const p = await bcChoosePassphrase("Encrypt your cloud backup", "Your backup will be scrambled with this passphrase before it leaves this device. It is never stored or sent, so if you forget it your cloud backup can't be opened by anyone. You'll enter it once each time you open on369.");
+              if(!p) return;
+              cloudPass = p; setCloudEnc(true); await cloudPush(true); msg = "Your cloud backup is now encrypted.";
+            })]),
         btn("Restore an earlier cloud copy\u2026", async ()=>{ await cloudRestoreEarlier(); }),
         btn("Restore cloud copy", async ()=>{
           const row = await cloudFetch();
           if(!row) throw new Error("No cloud backup found.");
-          if(confirm("Replace the webtop on this device with the cloud copy from " + when(row.updated_at) + "?")) await cloudRestore(row.data);
+          if(confirm("Replace the webtop on this device with the cloud copy from " + when(row.updated_at) + "?")) await cloudRestore(await cloudDataOf(row));
         }),
         btn("Disconnect", async ()=>{ await cloudDisconnect(false); msg = "Disconnected. Your data stays on this device and in the cloud."; }),
         btn("Disconnect and clear this device", async ()=>{

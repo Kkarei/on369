@@ -154,6 +154,7 @@ function showCanvasContextMenu(x, y, parentId){
       { label:"Clock", icon:"clock", action: ()=> openClockSettings(addClockWidget(wx, wy), x, y) },
       { label:"Calendar", icon:"calendar", action: ()=> openClockSettings(addCalendarWidget(wx, wy), x, y) },
       { label:"Most used", icon:"star", hint:"Auto-filled", action: ()=> openRecentsSettings(addRecentsWidget(wx, wy), x, y) },
+      "sep", ...tileWidgetMenuItems(wx, wy, x, y),
       { label:"Board (presets)\u2026", icon:"grid", action: ()=> openBoardPresetPicker({ title:"Add a board", onPick: (p)=> startAddBoard(p) }) }
     ] });
   }

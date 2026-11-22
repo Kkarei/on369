@@ -264,3 +264,10 @@
   .user-note-foot.a-left{ text-align:left; }
   .user-note-foot.a-right{ text-align:right; }
   @media (max-width:600px){ .user-note-foot{ left:96px; right:78px; } }
+
+/* ---------- backup window: passphrase fields and reminder setting ---------- */
+.bk-enc{ display:flex; flex-direction:column; gap:8px; margin:8px 0 12px; }
+.bk-enc[hidden]{ display:none; }
+.pass-input{ width:100%; }
+.bk-remind{ display:flex; align-items:center; gap:8px; margin-top:14px; font-size:12.5px; color:var(--text-secondary); }
+.bk-remind select{ background:var(--surface); color:var(--text-primary); border:1px solid var(--border); border-radius:8px; padding:5px 8px; font:inherit; }

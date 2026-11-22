@@ -450,3 +450,61 @@
 .rw-item .icon-glyph{ margin:0; }
 .rw-label{ font-size:11.5px; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text-secondary); }
 .rw-empty{ grid-column:1 / -1; text-align:center; color:var(--text-tertiary); font-size:12.5px; padding:22px 8px; }
+
+/* ---------- To-do: due times ---------- */
+.todo-due-toggle{ flex-shrink:0; width:34px; height:34px; border-radius:8px; border:1px solid var(--border-strong); background:var(--bg-0); color:var(--text-primary); cursor:pointer; font-size:15px; }
+.todo-due-toggle:hover{ border-color:var(--accent); }
+.todo-due-row{ display:flex; align-items:center; gap:8px; padding:0 12px 8px; font-size:12px; color:var(--text-secondary); }
+.todo-due-row[hidden]{ display:none; }
+.todo-due-row input, .todo-due-edit input{ background:var(--bg-0); color:var(--text-primary); border:1px solid var(--border-strong); border-radius:8px; padding:5px 7px; font:inherit; font-size:12px; color-scheme:dark light; }
+.todo-due-row button, .todo-due-edit button{ background:none; border:none; color:var(--text-secondary); font:inherit; font-size:12px; cursor:pointer; padding:4px 6px; border-radius:6px; }
+.todo-due-row button:hover, .todo-due-edit button:hover{ background:var(--bg-0); color:var(--text-primary); }
+.todo-due{ flex-shrink:0; border:none; font:inherit; font-size:11px; padding:3px 8px; border-radius:999px; cursor:pointer; background:var(--bg-0); color:var(--text-secondary); white-space:nowrap; }
+.todo-due.none{ opacity:0; padding:3px 6px; }
+.todo-item:hover .todo-due.none, .todo-due.none:focus-visible{ opacity:.7; }
+@media (pointer:coarse){ .todo-due.none{ opacity:.55; } .todo-due-toggle{ width:40px; height:40px; } .todo-due{ min-height:30px; } }
+.todo-due.overdue{ background:rgba(234,107,131,.2); color:#ea6b83; font-weight:600; }
+.todo-due.today{ background:rgba(246,211,101,.2); color:#d9a520; font-weight:600; }
+.todo-due.soon{ color:var(--text-primary); }
+.todo-item.done .todo-due{ opacity:.45; }
+
+/* ---------- tile widgets (a board tile type as a free-floating widget) ---------- */
+.tile-widget{ display:flex; flex-direction:column; }
+.tile-widget .tile-widget-body{ flex:1; min-height:0; background:none; box-shadow:none; }
+
+/* ---------- Markdown (notes preview, pinned notes) ---------- */
+.md{ font-size:14px; line-height:1.55; overflow-wrap:anywhere; }
+.md h1,.md h2,.md h3{ margin:.6em 0 .3em; line-height:1.25; }
+.md h1{ font-size:1.5em; } .md h2{ font-size:1.25em; } .md h3{ font-size:1.1em; }
+.md p{ margin:.5em 0; } .md ul,.md ol{ margin:.4em 0; padding-left:1.4em; }
+.md li.md-task{ list-style:none; margin-left:-1.2em; }
+.md code{ font-family:var(--font-mono); font-size:.9em; background:rgba(128,128,128,.22); padding:1px 5px; border-radius:5px; }
+.md pre{ background:rgba(0,0,0,.28); padding:10px 12px; border-radius:8px; overflow-x:auto; } .md pre code{ background:none; padding:0; }
+.md blockquote{ margin:.5em 0; padding:2px 12px; border-left:3px solid var(--accent); opacity:.85; }
+.md a{ color:var(--accent); } .md hr{ border:none; border-top:1px solid rgba(128,128,128,.4); }
+.notes-preview{ flex:1; min-height:0; overflow:auto; padding:12px 16px; color:var(--text-primary); }
+.t-pinnote .t-pn-body{ flex:1; min-height:0; overflow:auto; font-size:13px; }
+.t-pn-open{ flex-shrink:0; align-self:flex-start; background:none; border:1px solid rgba(128,128,128,.4); color:inherit; border-radius:8px; padding:4px 10px; font:inherit; font-size:12px; cursor:pointer; }
+.t-pn-open:hover{ border-color:var(--accent); }
+.t-due{ margin-left:auto; flex-shrink:0; font-size:11px; padding:1px 7px; border-radius:999px; background:rgba(128,128,128,.22); white-space:nowrap; }
+.t-due.overdue{ background:rgba(234,107,131,.3); } .t-due.today{ background:rgba(246,211,101,.3); } .t-due.soon{ background:rgba(124,159,255,.25); }
+
+/* ---------- Link checker ---------- */
+.lc-app{ padding:14px; display:flex; flex-direction:column; gap:10px; height:100%; overflow:auto; }
+.lc-app h3{ margin:0; font-size:16px; }
+.lc-bar{ display:flex; align-items:center; gap:10px; }
+.lc-progress{ flex:1; height:6px; border-radius:6px; background:var(--surface); border:1px solid var(--border); overflow:hidden; }
+.lc-progress i{ display:block; height:100%; background:var(--accent); transition:width .2s linear; }
+.lc-chips{ display:flex; flex-wrap:wrap; gap:6px; }
+.lc-list{ display:flex; flex-direction:column; }
+.lc-row{ display:flex; align-items:center; gap:10px; padding:9px 4px; border-bottom:1px solid var(--border); }
+.lc-mark{ width:22px; height:22px; flex-shrink:0; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; background:var(--surface); color:var(--text-secondary); }
+.lc-ok .lc-mark{ background:rgba(107,209,160,.22); color:#6bd1a0; } .lc-down .lc-mark{ background:rgba(234,107,131,.25); color:#ea6b83; } .lc-slow .lc-mark{ background:rgba(246,211,101,.25); color:#f6d365; }
+.lc-text{ flex:1; min-width:0; display:flex; flex-direction:column; }
+.lc-text b{ font-size:13.5px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.lc-text span{ font-size:11.5px; color:var(--text-tertiary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.lc-acts{ display:flex; gap:2px; flex-shrink:0; flex-wrap:wrap; justify-content:flex-end; }
+.lc-acts a, .lc-acts button{ background:none; border:none; color:var(--text-secondary); font:inherit; font-size:12px; padding:5px 7px; border-radius:7px; cursor:pointer; text-decoration:none; }
+.lc-acts a:hover, .lc-acts button:hover{ background:var(--surface); color:var(--text-primary); }
+@media (pointer:coarse){ .lc-acts a, .lc-acts button{ min-height:36px; display:inline-flex; align-items:center; } }
+@media (max-width:480px){ .lc-row{ flex-wrap:wrap; } .lc-acts{ width:100%; justify-content:flex-start; padding-left:32px; } }

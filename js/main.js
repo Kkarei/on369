@@ -13,6 +13,7 @@ function initMain(){
     else if(!state.gettingStartedDismissed && !shared) AppManager.launch("getting-started", { title:"Getting Started", color: COLORS[1] });
     cloudBaseline(); undoReset();
     if(shared && !(sess && sess.needsResolve)) openSharedLink(shared);
+    enforceActiveWebtopLock();          // cover a private webtop until its PIN is entered
   };
   // Loading can be slow on a cold start. Say so, and never guess: nothing is written until it really finishes.
   const slow = setTimeout(()=>{ if(!finished) showAppBanner("loading", "Still loading your data\u2026 your changes will be saved once it finishes."); }, 5000);
@@ -59,9 +60,12 @@ initAppsNotes();
 initAppsTodo();
 initAppsClock();
 initAppsCalendar();
+initAppsLinkChecker();
 initAppsGettingStarted();
 initUiSearchBar();
 initUiTouchLongPress();
 initServicesCloudBackup();
 initServicesFileBackup();
+initServicesBackupReminder();
+initServicesReminders();
 initMain();

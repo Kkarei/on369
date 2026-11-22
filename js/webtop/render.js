@@ -6,9 +6,14 @@ function renderInto(container, parentId, opts){
   // clear icons but keep rubberband if root
   Array.from(container.querySelectorAll(".icon")).forEach(n=>n.remove());
   const items = childrenOf(parentId).sort((a,b)=> a.y-b.y || a.x-b.x);
-  const cell = getCellSize();
+  const cell = getCellSize(parentId);
   const offset = getGridOffset(parentId);
   const rovingId = getRovingId(items);
+  if(cell.icon){          // an auto-spaced shelf in a board: its icons use its own spacing and size
+    container.style.setProperty("--cell-w", cell.w + "px"); container.style.setProperty("--cell-h", cell.h + "px"); container.style.setProperty("--icon-size", cell.icon + "px");
+  }else if(parentId !== null){
+    container.style.removeProperty("--cell-w"); container.style.removeProperty("--cell-h"); container.style.removeProperty("--icon-size");
+  }
 
   items.forEach(item=>{
     const el = document.createElement("div");
@@ -42,7 +47,8 @@ function renderInto(container, parentId, opts){
   }else{
     if(multiSelectMode) updateStatusBar();
     const maxYf = items.reduce((m,i)=> Math.max(m,i.y), -1);
-    const neededHf = offset.top + (maxYf+1)*cell.h + 40;
+    const tidyShelf = (()=>{ const wd = widgetById(parentId); return !!(wd && wd.embedded && wd.autoFlow); })();
+    const neededHf = offset.top + (maxYf+1)*cell.h + (tidyShelf ? 6 : 40);     // an auto-arranged shelf only scrolls when its icons truly don't fit
     // folderBody sits inside folderPanel, which has a FIXED height and
     // overflow:hidden — growing folderBody's own min-height past that
     // just gets clipped by the panel, it does not create an internally

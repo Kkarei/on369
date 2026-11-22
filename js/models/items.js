@@ -69,12 +69,15 @@ class WidgetItem extends WebtopItem{
     this.wx = o.wx ?? 40; this.wy = o.wy ?? 140;
     this.pw = o.pw || 340; this.ph = o.ph || 260;
     this.opacity = o.opacity ?? 0.35; this.blur = o.blur !== false; this.collapsed = !!o.collapsed;
-    this.kind = ["clock", "calendar", "board", "recents"].includes(o.kind) ? o.kind : "group";   // "group" (a Shelf) holds icons; "clock" and "calendar" show their own content
+    this.kind = ["clock", "calendar", "board", "recents", "tile"].includes(o.kind) ? o.kind : "group";   // "group" (a Shelf) holds icons; "clock" and "calendar" show their own content
     this.calStyle = o.calStyle || "month"; this.weekStartMon = !!o.weekStartMon;
     this.embedded = !!o.embedded;      // a shelf that lives inside a board tile (drawn there, not on its own)
     this.cols = o.cols || 8; this.tiles = Array.isArray(o.tiles) ? o.tiles : []; this.tstyle = o.tstyle || {};   // boards
     this.clockStyle = o.clockStyle || "poster"; this.accent = o.accent || "";
     this.showSeconds = !!o.showSeconds; this.showDate = o.showDate !== false;
+    this.tileType = typeof o.tileType === "string" ? o.tileType : "";                                           // kind "tile": which board tile type it shows
+    this.tileProps = o.tileProps && typeof o.tileProps === "object" ? JSON.parse(JSON.stringify(o.tileProps)) : null;
+    this.autoFlow = !!o.autoFlow;      // an embedded shelf whose icons are packed in reading order and centred (starter templates)
     this.recentsMode = o.recentsMode === "recent" ? "recent" : "frequent"; this.recentsCount = o.recentsCount || 8;   // "Most used" shelf
   }
 }

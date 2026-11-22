@@ -17,10 +17,18 @@ ON369 goes beyond being a bookmark manager. It transforms the way you organize, 
 - **Visual Organization** — Organize your digital resources in a way that suits your preferences and workflow.
 - **Quick Navigation** — Open your favourite websites and tools directly from your workspace.
 - **Web-Based Access** — Use your webtop through a browser without installing a traditional desktop application.
+- **Starter Webtops** — One-tap templates (Student, Developer, Designer, Work, Writer, Business, Gaming, Media and more): a ready-made board plus a neatly spaced shelf of real apps from the web app catalog.
 - **Command Palette** — Press `Ctrl+K` (`Cmd+K` on Mac), or open it from the + menu on a phone, to jump to any icon, app, webtop, theme or action by typing a few letters.
 - **Most Used Shelf** — A widget that fills itself with the icons you open most or most recently. The history stays on your device.
 - **Clock App** — World clocks, a timer, a stopwatch and a Pomodoro focus timer. Timers keep running (with a sound, vibration and notification) even when the window is closed.
 - **Custom Icons** — Edit any icon and choose an emoji or upload your own picture.
+- **Starter Templates** — One tap in the New webtop dialog creates a ready-made webtop (Student, Developer, Designer, Work, Writer, Business, Gaming, Media, Start page and more) with tidy widgets and a shelf of real apps from the built-in catalog.
+- **Private Webtops** — Put a PIN on a webtop. Only a salted hash is stored. It is a privacy screen, not encryption: the contents are still stored on the device.
+- **More Widgets** — Countdown, habit tracker, news headlines, to-do list (shared with the Todo app and its reminders), notes pinned from the Notes app, and a weather forecast, as free-floating widgets or board tiles.
+- **Notes** — Markdown preview, pin a note as a widget, and notes and tasks show up in the command palette.
+- **Reminders** — Give a task a due time and get a reminder banner (and a notification if allowed).
+- **Link Checker** — Finds bookmarks whose websites no longer answer. Browsers can't read a page's status, so it finds sites that are gone or down, not single missing pages.
+- **Safer Backups** — Encrypt backup files, and optionally your cloud backup, with a passphrase (AES-256-GCM). The passphrase is never stored or sent, and if it is lost the backup cannot be opened. Backup reminders can be set to weekly, monthly or off.
 - **Share to on369** — Install on your phone and use Share in any app to send a link to your webtop. In any browser you can also open `<your on369 address>/?url=<link>&title=<name>`; for a one-click bookmarklet use:
   `javascript:(function(){location.href='<your on369 address>/?url='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title)})()`
 

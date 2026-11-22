@@ -207,6 +207,7 @@ function initUiModals(){
       { label:"Clock", icon:"clock", action: ()=> openClockSettings(addClockWidget(wx, wy), window.innerWidth - 260, 120) },
       { label:"Calendar", icon:"calendar", action: ()=> openClockSettings(addCalendarWidget(wx, wy), window.innerWidth - 260, 120) },
       { label:"Most used", icon:"star", hint:"Auto-filled", action: ()=> openRecentsSettings(addRecentsWidget(wx, wy), window.innerWidth - 260, 120) },
+      "sep", ...tileWidgetMenuItems(wx, wy, window.innerWidth - 260, 120),
       { label:"Board (presets)\u2026", icon:"grid", action: ()=> openBoardPresetPicker({ title:"Add a board", onPick: (p)=> startAddBoard(p) }) }
     ] });
     items.push("sep", { label:"Import bookmarks\u2026", icon:"import", action: ()=> triggerBookmarkImport(parentId) });

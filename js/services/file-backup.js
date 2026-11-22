@@ -16,10 +16,16 @@ function downloadText(name, text, mime){
   setTimeout(()=> URL.revokeObjectURL(url), 1000);
 }
 
-async function exportEverything(prefix){
+async function exportEverything(prefix, passphrase){
   const data = await cloudSnapshot(true);
   data.app = "on369"; data.exportedAt = new Date().toISOString();
-  downloadText(`${prefix || "on369-backup"}-${data.exportedAt.slice(0,10)}.json`, JSON.stringify(data), "application/json");
+  const day = data.exportedAt.slice(0,10);
+  if(passphrase){                         // encrypted: the file is unreadable without the passphrase
+    const box = await bcEncrypt(data, passphrase);
+    downloadText(`${prefix || "on369-backup"}-${day}.encrypted.json`, JSON.stringify({ app:"on369", encrypted:true, v:1, exportedAt: data.exportedAt, ...box }), "application/json");
+  }else{
+    downloadText(`${prefix || "on369-backup"}-${day}.json`, JSON.stringify(data), "application/json");
+  }
   if(!prefix){ try{ localStorage.setItem("on369.lastExport", data.exportedAt); }catch(_){} }
   return data;
 }
@@ -38,7 +44,7 @@ function renderBackupApp(body){
   const root = document.createElement("div"); root.className = "cloud-app backup-app";
   body.innerHTML = ""; body.appendChild(root);
   const input = document.createElement("input"); input.type = "file"; input.accept = ".json,application/json"; input.style.display = "none";
-  let msg = "", err = false, pending = null, keepCopy = true, busy = false;
+  let msg = "", err = false, pending = null, keepCopy = true, busy = false, encOn = false, passA = "", passB = "", unlockPass = "";
   const el = (tag, cls, text)=>{ const n = document.createElement(tag); if(cls) n.className = cls; if(text != null) n.textContent = text; return n; };
   const act = (label, desc, fn, cls)=>{
     const wrap = el("div", "bk-item"), b = el("button", cls || "", label);
@@ -48,7 +54,11 @@ function renderBackupApp(body){
   input.addEventListener("change", async ()=>{
     const f = input.files && input.files[0]; input.value = "";
     if(!f) return;
-    try{ pending = { d: parseBackupText(await f.text()), name: f.name }; msg = ""; err = false; }
+    try{
+      const text = await f.text(); let peek = null; try{ peek = JSON.parse(text); }catch(_){}
+      pending = bcIsBox(peek) ? { locked: peek, name: f.name } : { d: parseBackupText(text), name: f.name };   // an encrypted file asks for its passphrase first
+      msg = ""; err = false; unlockPass = "";
+    }
     catch(e){ pending = null; msg = e.message; err = true; }
     draw();
   });
@@ -56,7 +66,16 @@ function renderBackupApp(body){
   function draw(){
     root.innerHTML = ""; root.appendChild(input);
     root.appendChild(el("h3", "", "Backup & restore"));
-    if(pending){
+    if(pending && pending.locked){
+      const pw = el("input"); pw.type = "password"; pw.className = "note-input pass-input"; pw.placeholder = "Passphrase"; pw.autocomplete = "off"; pw.value = unlockPass; pw.setAttribute("aria-label", "Backup passphrase");
+      pw.addEventListener("input", ()=>{ unlockPass = pw.value; });
+      root.append(el("p", "", `\u201C${pending.name}\u201D is encrypted.`), el("p", "cloud-note", "Enter the passphrase you chose when you saved it."), pw);
+      root.appendChild(act("Unlock", "Nothing is changed yet; you'll see what's inside first.", async ()=>{
+        const plain = await bcDecrypt(pending.locked, unlockPass);
+        pending = { d: parseBackupText(JSON.stringify(plain)), name: pending.name }; unlockPass = "";
+      }, "primary"));
+      root.appendChild(act("Cancel", "Nothing has been changed.", async ()=>{ pending = null; unlockPass = ""; }));
+    }else if(pending){
       const it = pending.d.items, count = (t)=> it.filter(i=> i.type === t).length;
       root.append(el("p", "", `Ready to import \u201c${pending.name}\u201d`),
         el("p", "cloud-note", `${it.length} items (${count("bookmark") + count("webapp")} bookmarks and web apps, ${count("folder")} folders, ${count("widget")} widgets)` + (pending.d.exportedAt ? `, saved ${new Date(pending.d.exportedAt).toLocaleString()}.` : ".")),
@@ -72,13 +91,32 @@ function renderBackupApp(body){
       root.appendChild(act("Cancel", "Nothing has been changed.", async ()=>{ pending = null; }));
     }else{
       root.appendChild(el("h4", "", "Save to your computer"));
-      root.appendChild(act("Export everything (JSON)", "Icons, folders, widgets, themes, settings, Notes and Todo, all in one file. Keep it somewhere safe.", async ()=>{ await exportEverything(); msg = "Backup file saved to your downloads."; }, "primary"));
+      const encLab = el("label", "bk-check"), encCb = el("input"); encCb.type = "checkbox"; encCb.checked = encOn;
+      encLab.append(encCb, document.createTextNode(" Protect the file with a passphrase")); root.appendChild(encLab);
+      const encBox = el("div", "bk-enc"); encBox.hidden = !encOn;
+      const mk = (ph, get, set)=>{ const i = el("input"); i.type = "password"; i.className = "note-input pass-input"; i.placeholder = ph; i.autocomplete = "off"; i.value = get(); i.addEventListener("input", ()=> set(i.value)); return i; };
+      encBox.append(mk("Passphrase (at least " + BC_MIN_LENGTH + " characters)", ()=> passA, v=> passA = v), mk("Repeat the passphrase", ()=> passB, v=> passB = v),
+        el("p", "cloud-note", "The passphrase is not saved anywhere. If you forget it, this file can't be opened by anyone."));
+      encCb.addEventListener("change", ()=>{ encOn = encCb.checked; encBox.hidden = !encOn; });
+      root.appendChild(encBox);
+      root.appendChild(act("Export everything (JSON)", "Icons, folders, widgets, themes, settings, Notes and Todo, all in one file. Keep it somewhere safe.", async ()=>{
+        if(encOn){
+          if(!bcSupported()) throw new Error("Encryption needs a secure (https) connection in this browser.");
+          if(passA.length < BC_MIN_LENGTH) throw new Error("Use a passphrase of at least " + BC_MIN_LENGTH + " characters.");
+          if(passA !== passB) throw new Error("The two passphrases don't match.");
+          await exportEverything(null, passA); passA = passB = "";
+          msg = "Encrypted backup saved to your downloads.";
+        }else{ await exportEverything(); msg = "Backup file saved to your downloads."; }
+      }, "primary"));
       root.appendChild(act("Export bookmarks only (HTML)", "A standard bookmarks file you can import into Chrome, Firefox, Edge or Safari.", async ()=>{ exportBookmarks(); msg = "Bookmarks file saved to your downloads."; }));
       root.appendChild(el("h4", "", "Load from your computer"));
       root.appendChild(act("Import everything (JSON)", "Pick a backup file you saved earlier. You'll see what's in it before anything changes.", async ()=>{ input.click(); }));
       root.appendChild(act("Import bookmarks (HTML)", "Bring in bookmarks from a browser's bookmarks file.", async ()=>{ triggerBookmarkImport(null); }));
       let last = null; try{ last = localStorage.getItem("on369.lastExport"); }catch(_){}
       root.appendChild(el("p", "cloud-note", last ? "Last full backup file: " + new Date(last).toLocaleString() : "You haven't saved a full backup file yet."));
+      const remRow = el("label", "bk-remind"); remRow.append(document.createTextNode("Remind me to back up: "));
+      const sel = el("select"); [["monthly", "Every month"], ["weekly", "Every week"], ["off", "Never"]].forEach(([v, t])=>{ const o = el("option", "", t); o.value = v; sel.appendChild(o); });
+      sel.value = brMode(); sel.addEventListener("change", ()=> brSetMode(sel.value)); remRow.appendChild(sel); root.appendChild(remRow);
     }
     if(msg) root.appendChild(el("p", err ? "cloud-msg err" : "cloud-msg", msg));
   }

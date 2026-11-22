@@ -48,6 +48,7 @@ function usageRanked(mode, limit, includeFolders){
   const m = usageLoad(), out = [];
   state.icons.forEach(it=>{
     if(it.type === "widget" || (it.type === "folder" && !includeFolders)) return;
+    if(typeof webtopNeedsUnlock === "function" && webtopNeedsUnlock(itemSpace(it))) return;       // never list what is on a locked webtop
     const u = m[it.id]; if(u) out.push({ item: it, n: u.n, last: u.last });
   });
   out.sort(mode === "recent" ? (a, b)=> b.last - a.last : (a, b)=> (b.n - a.n) || (b.last - a.last));

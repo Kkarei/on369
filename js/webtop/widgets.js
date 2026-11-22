@@ -213,6 +213,7 @@ function renderWidgetsInner(){
     if(w.kind === "group" && w.embedded) return;
     if(w.kind === "clock" || w.kind === "calendar"){ renderClockWidget(w, stack); return; }
     if(w.kind === "recents"){ renderRecentsWidget(w, stack); return; }
+    if(w.kind === "tile"){ renderTileWidget(w, stack); return; }
     if(w.kind === "board"){ renderBoardWidget(w); return; }
     const hex = /^#[0-9a-f]{6}$/i.test(w.color) ? w.color : COLORS[0];
     const n = parseInt(hex.slice(1), 16), r = n >> 16 & 255, g = n >> 8 & 255, b = n & 255;
@@ -268,3 +269,17 @@ function escapeHtml(s){
   return d.innerHTML;
 }
 
+
+// A spot for a new free-floating widget that doesn't land on top of the ones already there (used where there is
+// no click position, e.g. the command palette). Scans left-to-right, top-to-bottom; falls back to a small cascade.
+function freeWidgetSpot(pw, ph){
+  const taken = state.icons.filter(i=> i.type === "widget" && i.kind !== "board" && !i.embedded && inSpace(i));
+  const maxX = Math.max(40, window.innerWidth - pw - 24);
+  for(let y = 140; y < 140 + 1600; y += 40){
+    for(let x = 40; x <= maxX; x += 40){
+      if(!taken.some(t=> x < t.wx + t.pw + 16 && t.wx < x + pw + 16 && y < t.wy + t.ph + 16 && t.wy < y + ph + 16)) return { x, y };
+    }
+  }
+  const n = taken.length;
+  return { x: 60 + (n % 8) * 26, y: 130 + (n % 8) * 26 };
+}

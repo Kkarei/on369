@@ -35,6 +35,7 @@ function cmdkBuildEntries(){
   state.icons.forEach(it=>{
     if(it.type === "widget") return;
     const space = cmdkSpaceOf(it), here = space === state.activeWebtop;
+    if(webtopNeedsUnlock(space)) return;                       // icons on a locked webtop stay out of search
     const kind = it.type === "folder" ? "Folder" : it.type === "app" ? "App" : (domainLabel(it.url || "") || "Link");
     add({
       group: "Icons", title: it.label || "Untitled", sub: kind + (here ? "" : " · " + cmdkWebtopName(space)),
@@ -56,23 +57,35 @@ function cmdkBuildEntries(){
     if(w.id === state.activeWebtop) return;
     add({ group: "Webtops", title: "Switch to " + w.name, sub: "Webtop", keywords: "webtop workspace " + w.name, emoji: w.icon, weight: -1, run: ()=> switchWebtop(w.id) });
   });
+  allBoardPresets().filter(p=> p.id !== "blank").forEach(p=>{
+    add({ group: "Webtops", title: "New " + p.name + " webtop", sub: "Template" + (Array.isArray(p.apps) && p.apps.length ? " · " + p.apps.length + " apps" : ""), keywords: "template starter new webtop " + (p.desc || ""),
+      emoji: p.emoji || "\u{1F9E9}", weight: -3, run: ()=> createWebtopFromTemplate(p) });
+  });
+  allBoardPresets().filter(p=> p.id !== "blank").forEach(p=> add({ group: "Webtops", title: "New " + p.name + " webtop", sub: "Template" + (Array.isArray(p.apps) && p.apps.length ? " · " + p.apps.length + " apps" : ""),
+    keywords: "new webtop template starter " + p.name + " " + (p.desc || ""), emoji: p.emoji || "\u{1F9E9}", weight: -3, run: ()=> createWebtopFromTemplate(p) }));
   add({ group: "Webtops", title: "New webtop…", sub: "Create another workspace", keywords: "add create workspace", icon: "grid", weight: -3, run: ()=> openWebtopDialog() });
 
   // Actions
-  const n = state.icons.filter(i=> i.type === "widget").length, wx = 60 + (n % 8) * 26, wy = 130 + (n % 8) * 26;
+  const spotFor = (pw, ph)=>{ const s = freeWidgetSpot(pw, ph); return [s.x, s.y]; };
   const act = (title, icon, run, keywords, hint)=> add({ group: "Actions", title, sub: hint || "Action", icon, keywords: keywords || "", weight: -4, run });
   act("New bookmark", "bookmark", ()=> openItemModal({ mode:"create", type:"bookmark", parentId:null }), "add link website");
   act("New folder", "folder", ()=> openItemModal({ mode:"create", type:"folder", parentId:null }), "add group");
   act("Add a web app", "globe", ()=> openWebAppPicker({ parentId:null }), "web app catalog install");
   act("Add a utility app", "grid", ()=> openAppPicker(null), "calculator todo notes clock calendar");
-  act("Add a Shelf widget", "grid", ()=> openWidgetSettings(addWidget(wx, wy, []), window.innerWidth - 260, 120), "widget group");
-  act("Add a Clock widget", "clock", ()=> openClockSettings(addClockWidget(wx, wy), window.innerWidth - 260, 120), "widget time");
-  act("Add a Calendar widget", "calendar", ()=> openClockSettings(addCalendarWidget(wx, wy), window.innerWidth - 260, 120), "widget date");
-  act("Add a Most used widget", "star", ()=> openRecentsSettings(addRecentsWidget(wx, wy), window.innerWidth - 260, 120), "widget favourites recent frequent");
+  act("Add a Shelf widget", "grid", ()=> openWidgetSettings(addWidget(...spotFor(340, 260), []), window.innerWidth - 260, 120), "widget group");
+  act("Add a Clock widget", "clock", ()=> openClockSettings(addClockWidget(...spotFor(300, 160)), window.innerWidth - 260, 120), "widget time");
+  act("Add a Calendar widget", "calendar", ()=> openClockSettings(addCalendarWidget(...spotFor(300, 300)), window.innerWidth - 260, 120), "widget date");
+  act("Add a Most used widget", "star", ()=> openRecentsSettings(addRecentsWidget(...spotFor(340, 210)), window.innerWidth - 260, 120), "widget favourites recent frequent");
+  TILE_WIDGET_TYPES.forEach(type=>{ const d = TILE_TYPES[type];
+    act("Add a " + d.name + " widget", "grid", ()=>{ const sz = TILE_WIDGET_SIZE[type] || [280, 240], at = spotFor(sz[0], sz[1]), w = addTileWidget(type, at[0], at[1]); if(w && (type === "countdown" || type === "headlines")) openTileWidgetSettings(w, window.innerWidth - 260, 120); }, "widget " + d.desc); });
   act(state.hideIcons ? "Show icons" : "Hide icons", state.hideIcons ? "view" : "eyeOff", ()=> toggleHideIcons(), "toggle clean desktop");
   if(canAdvanceWallpaper()) act("Next background", "wallpaper", ()=> advanceWallpaper(), "wallpaper change picture");
   if(canUndo()) act("Undo", "reset", ()=> undoLast(), "revert last change", "Ctrl+Z");
+  { const wt = activeWebtopObj();
+    if(wt && wt.lock) act("Lock this webtop now", "lock", ()=> lockWebtopNow(wt.id), "private pin");
+    else if(wt) act("Set a PIN for this webtop", "lock", ()=> promptSetPin(wt.id), "private lock pin password"); }
   act("Settings", "view", ()=> document.getElementById("settingsBtn").click(), "preferences options appearance wallpaper");
+  act("Check my links for dead ones", "globe", ()=> AppManager.launch("linkcheck", { title:"Link checker", color: COLORS[3] }), "broken bookmarks dead links check website");
   act("Cloud backup & sync", "export", ()=> document.getElementById("cloudBtn").click(), "sync email account");
   act("Backup & restore", "export", ()=> document.getElementById("backupBtn").click(), "export import file download");
   act("Import bookmarks…", "import", ()=> triggerBookmarkImport(null), "browser html file");
@@ -83,6 +96,27 @@ function cmdkBuildEntries(){
     run: ()=>{ state.theme = t.id; applyAppearance(); save(); } }));
 
   return out;
+}
+
+// Notes and tasks live in the apps' own storage, so they are read after the palette opens and added to the list.
+function cmdkLoadContent(){
+  Promise.all([
+    Store.getAppData("notes", "notes").catch(()=> []),
+    typeof todoLoad === "function" ? todoLoad() : Promise.resolve([])
+  ]).then(([notes, tasks])=>{
+    if(!cmdkIsOpen()) return;
+    (Array.isArray(notes) ? notes : []).forEach(n=>{
+      const body = String(n.text || "").replace(/\s+/g, " ").trim();
+      cmdkEntries.push({ group: "Notes", title: n.title || "Untitled note", sub: body.slice(0, 70) || "Empty note", keywords: body.slice(0, 600), icon: "rename", weight: -1, usage: 0,
+        run: ()=> openNoteById(n.id) });
+    });
+    (Array.isArray(tasks) ? tasks : []).filter(t=> !t.done).forEach(t=>{
+      const di = todoDueInfo(t);
+      cmdkEntries.push({ group: "Tasks", title: t.text, sub: "Task" + (di ? " · " + di.text : ""), keywords: "task todo", icon: "check", weight: -1, usage: 0,
+        run: ()=> AppManager.launch("todo", { title:"Todo", color: COLORS[2] }) });
+    });
+    if(cmdkInput.value.trim()) cmdkRender();                     // refresh only when a search is showing, so the list doesn't jump
+  }).catch(()=>{});
 }
 
 /* ---------- matching ---------- */
@@ -113,7 +147,7 @@ function cmdkScore(e, tokens){
 
 function cmdkCompute(query){
   const q = query.trim().toLowerCase();
-  const groupOrder = ["Recent", "Icons", "Apps", "Webtops", "Actions", "Themes", "Web"];
+  const groupOrder = ["Recent", "Icons", "Notes", "Tasks", "Apps", "Webtops", "Actions", "Themes", "Web"];
   let rows;
   if(!q){
     const recent = usageRanked("recent", 6, true).map(r=> cmdkEntries.find(e=> e.glyphItem && e.glyphItem.id === r.item.id)).filter(Boolean)
@@ -205,6 +239,7 @@ function openCommandPalette(prefill){
   cmdkActive = 0;
   cmdkOverlay.hidden = false;
   cmdkRender();
+  cmdkLoadContent();
   cmdkInput.focus();            // right away (not on a timer), so letters typed immediately after Ctrl+K aren't lost
 }
 function closeCommandPalette(restoreFocus){

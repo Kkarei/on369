@@ -6,11 +6,14 @@ async function renderTodoApp(body, api){
     <div class="todo-app">
       <div class="todo-input-row">
         <input type="text" class="todo-input" placeholder="Add a task…" autocomplete="off">
+        <button type="button" class="todo-due-toggle" title="Set a due time" aria-label="Set a due time">&#128197;</button>
         <div class="todo-add-btn" title="Add">+</div>
       </div>
+      <div class="todo-due-row" hidden><label>Due <input type="datetime-local" class="todo-due-input"></label><button type="button" class="todo-due-clear">Clear</button></div>
       <div class="todo-filters">
         <button class="todo-filter active" data-filter="all">All</button>
         <button class="todo-filter" data-filter="active">Active</button>
+        <button class="todo-filter" data-filter="due">Due</button>
         <button class="todo-filter" data-filter="done">Done</button>
       </div>
       <div class="todo-list"><div class="todo-empty">Loading…</div></div>
@@ -27,6 +30,7 @@ async function renderTodoApp(body, api){
   const countEl = body.querySelector(".todo-count");
   const clearEl = body.querySelector(".todo-clear");
   const filterBtns = body.querySelectorAll(".todo-filter");
+  const dueToggle = body.querySelector(".todo-due-toggle"), dueRow = body.querySelector(".todo-due-row"), dueInput = body.querySelector(".todo-due-input");
 
   let filter = "all";
   let todos = [];
@@ -49,16 +53,24 @@ async function renderTodoApp(body, api){
   todos = Array.isArray(loaded) ? loaded : [];
 
   function persist(){
-    api.storage.set("tasks", todos).catch(e=> console.warn("on369: todo save failed", e));
+    api.storage.set("tasks", todos).then(()=> api.emit("todo-changed", { from: "app" })).catch(e=> console.warn("on369: todo save failed", e));
   }
+  // The To-do widget (or another tab's change) edits the same list: reload when it does.
+  const offChanged = api.on("todo-changed", async (ev)=>{
+    if(!body.isConnected){ offChanged(); return; }
+    if(ev && ev.from === "app") return;
+    todos = await todoLoad(); renderList();
+  });
   function checkSVG(){
     return `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L19 7"></path></svg>`;
   }
 
+  const endOfToday = ()=>{ const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate() + 1).getTime(); };
   function renderList(){
     const visible = todos.filter(t=>{
       if(filter==="active") return !t.done;
       if(filter==="done") return t.done;
+      if(filter==="due"){ const d = todoDueDate(t); return !t.done && d && d.getTime() < endOfToday(); }
       return true;
     });
     if(visible.length===0){
@@ -68,6 +80,7 @@ async function renderTodoApp(body, api){
         <div class="todo-item${t.done?" done":""}" data-id="${t.id}">
           <div class="todo-check">${checkSVG()}</div>
           <span class="todo-text">${escapeHtml(t.text)}</span>
+          ${(()=>{ const di = todoDueInfo(t); return di ? `<button type="button" class="todo-due ${di.cls}" title="Change the due time">${escapeHtml(di.text)}</button>` : `<button type="button" class="todo-due none" title="Set a due time" aria-label="Set a due time">&#128197;</button>`; })()}
           <div class="todo-del" title="Delete">&#10005;</div>
         </div>
       `).join("");
@@ -92,11 +105,29 @@ async function renderTodoApp(body, api){
     });
   }
 
+  // Click a due badge (or the calendar icon on a task) to set or change its due time.
+  listEl.addEventListener("click", (e)=>{
+    const b = e.target.closest(".todo-due"); if(!b) return;
+    const row = b.closest(".todo-item"), t = todos.find(x=> x.id === row.dataset.id); if(!t) return;
+    const box = document.createElement("span"); box.className = "todo-due-edit";
+    const inp = document.createElement("input"); inp.type = "datetime-local"; inp.value = todoDueInputValue(t);
+    const clr = document.createElement("button"); clr.type = "button"; clr.textContent = "Clear";
+    box.append(inp, clr); b.replaceWith(box); inp.focus();
+    const done = ()=>{ persist(); renderList(); };
+    inp.addEventListener("change", ()=>{ if(inp.value){ t.due = inp.value; remAskPermission(); } else delete t.due; done(); });
+    clr.addEventListener("click", ()=>{ delete t.due; done(); });
+    inp.addEventListener("keydown", (ev)=>{ if(ev.key === "Escape") renderList(); });
+  });
+  dueToggle.addEventListener("click", ()=>{ dueRow.hidden = !dueRow.hidden; if(!dueRow.hidden) dueInput.focus(); });
+  body.querySelector(".todo-due-clear").addEventListener("click", ()=>{ dueInput.value = ""; });
+
   function addTodo(){
     const text = input.value.trim();
     if(!text) return;
-    todos.push({ id: uid(), text, done:false, createdAt: Date.now() });
-    input.value = "";
+    const t = { id: uid(), text, done:false, createdAt: Date.now() };
+    if(dueInput.value){ t.due = dueInput.value; remAskPermission(); }
+    todos.push(t);
+    input.value = ""; dueInput.value = ""; dueRow.hidden = true;
     persist();
     renderList();
     input.focus();
