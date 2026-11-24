@@ -66,7 +66,7 @@ function renderLinkChecker(body){
     root.appendChild(el("h3", "", "Link checker"));
     root.appendChild(el("p", "cloud-note", "Checks whether the websites behind your bookmarks and web apps still answer. A browser can't see a page's \u201Cnot found\u201D error on a working site, so this finds sites that are gone, down or unreachable, not individual missing pages."));
     const bar = el("div", "lc-bar");
-    const go = el("button", "primary", running ? `Checking\u2026 ${done} of ${total}` : (results.size ? "Check again" : `Check ${items.length} link${items.length === 1 ? "" : "s"}`));
+    const go = el("button", "btn primary", running ? `Checking\u2026 ${done} of ${total}` : (results.size ? "Check again" : `Check ${items.length} link${items.length === 1 ? "" : "s"}`));
     go.type = "button"; go.disabled = running || !items.length;
     go.addEventListener("click", ()=> runChecks());
     bar.appendChild(go);
@@ -82,7 +82,7 @@ function renderLinkChecker(body){
       });
       root.appendChild(chips);
       if(nDown){
-        const del = el("button", "danger", `Delete the ${nDown} not reachable\u2026`); del.type = "button";
+        const del = el("button", "btn danger", `Delete the ${nDown} not reachable\u2026`); del.type = "button";
         del.addEventListener("click", ()=> requestDeleteConfirm([...results.entries()].filter(([id, v])=> v === "down" && state.icons.some(i=> i.id === id)).map(([id])=> id)));
         root.appendChild(del);
       }

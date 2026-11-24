@@ -1,0 +1,16 @@
+{
+  "name": "on369",
+  "version": "1.0.0",
+  "private": true,
+  "description": "on369 is a static site (no build step). This package.json exists only to run the automated tests.",
+  "scripts": {
+    "serve": "node tests/serve.js",
+    "test": "playwright test",
+    "test:fast": "playwright test --grep-invert @slow",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.50.0"
+  }
+}

@@ -294,3 +294,8 @@
   #topbar .webtop-tabs{ margin:0 6px; }
   .brand-logo{ height:20px; }
 }
+
+/* On touch screens the whole height of the search bar should be the text field (it was only the 19px text line). */
+@media (pointer:coarse){
+  #searchInput{ align-self:stretch; min-height:36px; }
+}
