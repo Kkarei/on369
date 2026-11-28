@@ -146,6 +146,9 @@ const isCoarsePointer = window.matchMedia && window.matchMedia("(pointer: coarse
 // Touch gestures: a swipe scrolls, a tap opens, and holding still for this long
 // "picks up" an icon/widget so the next drag moves it (like a phone home screen).
 const TOUCH_DRAG_HOLD_MS = 350;
+// How far a finger must travel before it counts as a drag (like Android's "touch slop"). A little wobble never counts.
+const TOUCH_MOVE_SLOP_PX = 8;         // before the long-press menu appears
+const TOUCH_MENU_DRAG_PX = 16;        // once the menu is open: a real move this far closes it and drags the item
 let touchDragActive = false;   // true only while a picked-up item is being dragged; blocks page scrolling then
 function touchHaptic(){ try{ if(navigator.vibrate) navigator.vibrate(12); }catch(e){} }
 

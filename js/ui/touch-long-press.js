@@ -27,7 +27,10 @@ function initUiTouchLongPress(){
         }, 600);
       }, true);
       layer.addEventListener("pointermove", (e)=>{
-        if(timer && (Math.abs(e.clientX-sx) > 8 || Math.abs(e.clientY-sy) > 8)) cancel();
+        if(timer && (Math.abs(e.clientX-sx) > TOUCH_MOVE_SLOP_PX || Math.abs(e.clientY-sy) > TOUCH_MOVE_SLOP_PX)) cancel();
+        // The menu is already open and the same finger now travels a real distance: that is a drag, not a wobble.
+        // Close the menu, and stop treating this press as a long press so the drop is saved when the finger lifts.
+        else if(fired && e.isPrimary && Math.hypot(e.clientX-sx, e.clientY-sy) > TOUCH_MENU_DRAG_PX){ fired = false; closeCtxMenu(); closeWidgetPop(); }
       }, true);
       ["pointerup","pointercancel"].forEach(t=> layer.addEventListener(t, (e)=>{
         cancel();

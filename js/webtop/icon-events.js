@@ -2,6 +2,7 @@
 
 /* ============ ICON EVENTS (drag, click, dblclick, rename) ============ */
 let dragState = null;
+let folderOpenedAt = 0;   // when a folder last opened; see the backdrop handler below
 
 
 // Is the dragged icon's current center point over another icon that's a
@@ -163,7 +164,10 @@ function wireIconEvents(el, item, parentId){
       if(ev.pointerId !== pointerId) return;
       if(ev.pointerType === "mouse" && ev.buttons === 0){ onUp(ev); return; } // button was released somewhere we never heard about
       const dx = ev.clientX - downX, dy = ev.clientY - downY;
-      if(Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
+      // Mouse starts a drag after 4px. A finger needs a real move (8px), and 16px while the long-press menu is open, so a
+      // wobble of the hold neither drags the icon nor closes the menu.
+      const slop = ev.pointerType === "mouse" ? 4 : (activeCtxMenu ? TOUCH_MENU_DRAG_PX : TOUCH_MOVE_SLOP_PX);
+      if(Math.abs(dx) > slop || Math.abs(dy) > slop) moved = true;
       if(!moved) return;
       ev.preventDefault();
       lastDx = dx; lastDy = dy;
@@ -379,6 +383,7 @@ function openItem(item){
     if(currentFolderId !== null) folderStack.push(currentFolderId); // drilling deeper from an already-open folder
     currentFolderId = item.id;
     folderTitle.innerHTML = `${folderSVG(item.color)} ${escapeHtml(item.label)}`;
+    folderOpenedAt = Date.now();
     folderOverlay.classList.add("open");
     updateFolderBackButton();
     render();
@@ -417,6 +422,9 @@ function initWebtopIconEvents(){
     folderStack = [];
   });
   folderOverlay.addEventListener("mousedown", (e)=>{
+    // A tap opens the folder on finger-up, then the phone sends its follow-up "mousedown" to whatever is now under the
+    // finger. If that is the dark backdrop (the icon sat outside the panel), it would close the folder it just opened.
+    if(Date.now() - folderOpenedAt < 500) return;
     if(e.target === folderOverlay){ folderOverlay.classList.remove("open"); currentFolderId = null; folderStack = []; }
   });
 
