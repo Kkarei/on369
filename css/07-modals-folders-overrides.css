@@ -252,3 +252,16 @@
 .cmdk-foot kbd{ font-family:var(--font-mono); font-size:11px; padding:1px 5px; margin-right:3px; border:1px solid var(--border-strong); border-radius:5px; }
 @media (pointer:coarse){ .cmdk-foot{ display:none; } .cmdk-overlay{ padding-top:calc(10px + var(--safe-top)); } .cmdk-input{ font-size:16px; } }
 @media (max-width:640px){ .cmdk-overlay{ padding:calc(8px + var(--safe-top)) 8px 8px; } .cmdk{ max-height:calc(100dvh - 24px - var(--safe-top)); } }
+
+/* ---------- renaming an icon: make the editing look visible ----------
+   The icon is selected while you rename it, and the selected label style (green background, white text) was winning over the
+   editing style. The text, its highlight and the cursor were then all green on green, so nothing looked editable. */
+.icon .icon-label[contenteditable="true"],
+.icon.selected .icon-label[contenteditable="true"]{
+  background: var(--bg-1);
+  color: var(--text-primary);
+  caret-color: var(--accent);
+  outline: 2px solid var(--accent);
+  min-width: 3ch;
+}
+.icon .icon-label[contenteditable="true"]::selection{ background: var(--accent); color: #fff; }
